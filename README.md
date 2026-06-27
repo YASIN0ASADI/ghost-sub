@@ -64,6 +64,12 @@
 
 ## ⚡ نصب — یه دستور
 
+<div align="center">
+<img src="screenshots/install-preview.png" width="600"/>
+</div>
+
+<br/>
+
 با دسترسی **root** روی سرور:
 
 ```bash
