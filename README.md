@@ -27,9 +27,12 @@
 ## 📸 Preview
 
 <!-- Add screenshots here -->
-<img src="screenshots/preview-blue.png" width="320"/>
-<img src="screenshots/preview-red.png" width="320"/>
-<img src="screenshots/preview-green.png" width="320"/>
+<div align="center">
+<img src="screenshots/preview-blue.png" width="48%"/>
+<img src="screenshots/preview-red.png" width="48%"/>
+<br/><br/>
+<img src="screenshots/preview-green.png" width="48%"/>
+</div>
 
 ---
 
