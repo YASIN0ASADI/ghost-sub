@@ -27,7 +27,9 @@
 ## 📸 Preview
 
 <!-- Add screenshots here -->
-> *Screenshots coming soon*
+<img src="screenshots/preview-blue.png" width="320"/>
+<img src="screenshots/preview-red.png" width="320"/>
+<img src="screenshots/preview-green.png" width="320"/>
 
 ---
 
