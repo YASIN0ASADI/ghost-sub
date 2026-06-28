@@ -39,7 +39,7 @@
 
 ## ✨ این چیه؟
 
-یه **صفحه سابسکریپشن سفارشی** برای پنل‌های [3X-UI](https://github.com/MHSanaei/3x-ui) و [Pasargard](https://github.com/PasarGuard/panel).
+یه **صفحه سابسکریپشن سفارشی** برای پنل‌های [3X-UI](https://github.com/MHSanaei/3x-ui) و [Pasarguard](https://github.com/PasarGuard/panel).
 
 به جای صفحه ساده پیش‌فرض، کاربرات یه **UI شیشه‌ای تاریک** می‌بینن که کاملاً با اسم و کانال خودت برند شده — با یه دستور نصب.
 
@@ -107,7 +107,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/i
 
 ---
 
-### Pasargard
+### Pasarguard
 
 مطمئن شو این دو خط توی `/opt/pasarguard/.env` هست:
 
@@ -145,17 +145,7 @@ sudo bash install.sh
 
 ---
 
-## 📁 ساختار ریپو
 
-```
-ghost-sub/
-├── sub.html           ← تمپلت 3X-UI
-├── pasargard.html     ← تمپلت Pasargard
-├── install.sh         ← اسکریپت نصب خودکار (هر دو پنل)
-└── README.md          ← همین فایل
-```
-
----
 
 ## ❓ سوالات متداول
 
