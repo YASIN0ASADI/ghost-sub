@@ -39,7 +39,7 @@
 
 ## ✨ این چیه؟
 
-یه **صفحه سابسکریپشن سفارشی** برای پنل‌های [3X-UI](https://github.com/MHSanaei/3x-ui) و [Pasargard](https://github.com/PasarGuard/panel).
+یه **صفحه سابسکریپشن سفارشی** برای پنل‌های [3X-UI](https://github.com/MHSanaei/3x-ui) و [Pasarguard](https://github.com/PasarGuard/panel).
 
 به جای صفحه ساده پیش‌فرض، کاربرات یه **UI شیشه‌ای تاریک** می‌بینن که کاملاً با اسم و کانال خودت برند شده — با یه دستور نصب.
 
@@ -79,7 +79,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/i
 
 اسکریپت **سه سوال** ازت می‌پرسه:
 
-1. 🖥️ پنل: **3X-UI** یا **Pasargard**
+1. 🖥️ پنل: **3X-UI** یا **Pasargaurd**
 2. 📛 اسم برند / سرویست
 3. 📣 یوزرنیم کانال تلگرامت
 
@@ -150,7 +150,7 @@ sudo bash install.sh
 **سوال: با همه نسخه‌های 3X-UI کار می‌کنه؟**  
 جواب: بله، با همه نسخه‌های اخیر که از custom template پشتیبانی می‌کنن.
 
-**سوال: با چه نسخه‌ای از Pasargard کار می‌کنه؟**  
+**سوال: با چه نسخه‌ای از Pasarguard کار می‌کنه؟**  
 جواب: با نسخه v3 به بالا.
 
 **سوال: روی چند سرور می‌تونم نصب کنم؟**  
