@@ -3,13 +3,15 @@
 <br/>
 
 # 👻 Ghost Sub
-### Premium Subscription Page Template for 3X-UI
+### Premium Subscription Page Template
+#### Compatible with 3X-UI & Pasargard
 
 <br/>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![3X-UI](https://img.shields.io/badge/3X--UI-Compatible-brightgreen)](https://github.com/MHSanaei/3x-ui)
-[![FA | EN](https://img.shields.io/badge/Language-FA%20%7C%20EN-blueviolet)](.)
+[![Pasargard](https://img.shields.io/badge/Pasargard-Compatible-blueviolet)](https://github.com/PasarGuard/panel)
+[![FA | EN](https://img.shields.io/badge/Language-FA%20%7C%20EN-blue)](.)
 [![Stars](https://img.shields.io/github/stars/YASIN0ASADI/ghost-sub?style=social)](.)
 
 <br/>
@@ -26,7 +28,6 @@
 
 ## 📸 Preview
 
-<!-- Add screenshots here -->
 <div align="center">
 <img src="screenshots/preview-blue.png" width="48%"/>
 <img src="screenshots/preview-red.png" width="48%"/>
@@ -38,9 +39,9 @@
 
 ## ✨ این چیه؟
 
-یه **صفحه سابسکریپشن سفارشی** برای پنل‌های [3X-UI](https://github.com/MHSanaei/3x-ui).
+یه **صفحه سابسکریپشن سفارشی** برای پنل‌های [3X-UI](https://github.com/MHSanaei/3x-ui) و [Pasargard](https://github.com/PasarGuard/panel).
 
-به جای صفحه ساده و پیش‌فرض، کاربرات یه **UI شیشه‌ای تاریک** می‌بینن که کاملاً با اسم و کانال خودت برند شده — با یه دستور نصب.
+به جای صفحه ساده پیش‌فرض، کاربرات یه **UI شیشه‌ای تاریک** می‌بینن که کاملاً با اسم و کانال خودت برند شده — با یه دستور نصب.
 
 ---
 
@@ -50,7 +51,7 @@
 |---|---|
 | 🎨 **۳ تم رنگی** | قرمز · سبز · آبی-بنفش — کاربر می‌تونه عوض کنه |
 | 🌐 **دوزبانه** | فارسی (RTL) + انگلیسی، اتوماتیک تشخیص داده میشه |
-| 📊 **نمودار ترافیک** | حلقه انیمیشن‌دار آپلود / دانلود / باقیمانده |
+| 📊 **نمودار ترافیک** | حلقه انیمیشن‌دار مصرف |
 | ⏳ **تایمر زنده** | ثانیه شمار تا انقضای اشتراک |
 | 📋 **لیست کانفیگ** | فیلتر بر اساس پروتکل: VLESS · VMess · Trojan · SS |
 | 📲 **ایمپورت مستقیم** | یه کلیک برای Hiddify · Clash · SingBox · V2RayNG · Streisand · Shadowrocket |
@@ -76,25 +77,23 @@
 bash <(curl -fsSL https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/install.sh)
 ```
 
-اسکریپت **دو سوال** ازت می‌پرسه:
+اسکریپت **سه سوال** ازت می‌پرسه:
 
-1. 📛 اسم برند / سرویست
-2. 📣 یوزرنیم کانال تلگرامت
+1. 🖥️ پنل: **3X-UI** یا **Pasargard**
+2. 📛 اسم برند / سرویست
+3. 📣 یوزرنیم کانال تلگرامت
 
-بعد خودش:
-- تمپلت رو دانلود می‌کنه
-- برند رو جایگذاری می‌کنه
-- پوشه `/etc/3x-ui/sub_templates/my-theme/` می‌سازه
-- فایل `index.html` رو اونجا نصب می‌کنه
-- سرویس x-ui رو ریستارت می‌کنه
+بعد خودش همه چیز رو انجام میده.
 
 > ✅ نیاز به ویرایش دستی نیست. همه چیز خودکاره.
 
 ---
 
-## 🎛️ فعال‌سازی در پنل 3X-UI
+## 🎛️ فعال‌سازی
 
-بعد از اجرای اسکریپت، برو داخل **پنل ادمین 3X-UI**:
+### 3X-UI
+
+بعد از نصب، برو داخل **پنل ادمین 3X-UI**:
 
 ```
 تنظیمات پنل ← Subscription ← Subscription Template Path
@@ -106,7 +105,22 @@ bash <(curl -fsSL https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/i
 /etc/3x-ui/sub_templates/my-theme/
 ```
 
-ذخیره کن — تموم شد ✅
+---
+
+### Pasargard
+
+مطمئن شو این دو خط توی `/opt/pasarguard/.env` هست:
+
+```
+CUSTOM_TEMPLATES_DIRECTORY="/var/lib/pasarguard/templates/"
+SUBSCRIPTION_PAGE_TEMPLATE="subscription/index.html"
+```
+
+بعد:
+
+```bash
+pasarguard restart
+```
 
 ---
 
@@ -135,9 +149,10 @@ sudo bash install.sh
 
 ```
 ghost-sub/
-├── sub.html        ← تمپلت اصلی (placeholder برند)
-├── install.sh      ← اسکریپت نصب خودکار
-└── README.md       ← همین فایل
+├── sub.html           ← تمپلت 3X-UI
+├── pasargard.html     ← تمپلت Pasargard
+├── install.sh         ← اسکریپت نصب خودکار (هر دو پنل)
+└── README.md          ← همین فایل
 ```
 
 ---
@@ -147,14 +162,14 @@ ghost-sub/
 **سوال: با همه نسخه‌های 3X-UI کار می‌کنه؟**  
 جواب: بله، با همه نسخه‌های اخیر که از custom template پشتیبانی می‌کنن.
 
+**سوال: با چه نسخه‌ای از Pasargard کار می‌کنه؟**  
+جواب: با نسخه v3 به بالا.
+
 **سوال: روی چند سرور می‌تونم نصب کنم؟**  
 جواب: بله. دستور رو روی هر سرور اجرا کن و اطلاعات برندت رو بده.
 
 **سوال: می‌تونم رنگ‌ها رو بیشتر سفارشی کنم؟**  
-جواب: بله. بعد از نصب، فایل `/etc/3x-ui/sub_templates/my-theme/index.html` رو مستقیم ویرایش کن.
-
-**سوال: سرویس خودکار ریستارت نشد چیکار کنم؟**  
-جواب: دستی اجرا کن: `systemctl restart x-ui`
+جواب: بله. بعد از نصب، فایل `index.html` رو در مسیر نصب مستقیم ویرایش کن.
 
 ---
 
