@@ -14,7 +14,7 @@ BLD='\033[1m'
 RST='\033[0m'
 
 REPO_RAW_3XUI="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/sub.html"
-REPO_RAW_PG="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/pasargard.html"
+REPO_RAW_PG="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/pasarguard.html"
 
 clear
 echo ""
