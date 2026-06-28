@@ -79,7 +79,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/i
 
 اسکریپت **سه سوال** ازت می‌پرسه:
 
-1. 🖥️ پنل: **3X-UI** یا **Pasargaurd**
+1. 🖥️ پنل: **3X-UI** یا **Pasarguard**
 2. 📛 اسم برند / سرویست
 3. 📣 یوزرنیم کانال تلگرامت
 
