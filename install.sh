@@ -14,7 +14,7 @@ BLD='\033[1m'
 RST='\033[0m'
 
 REPO_RAW_3XUI="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/sub.html"
-REPO_RAW_PG="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/pasargard.html"
+REPO_RAW_PG="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/pasarguard.html"
 
 clear
 echo ""
@@ -40,7 +40,7 @@ echo -e "  ${BLD}Select your panel:${RST}"
 echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo ""
 echo -e "  ${BLD}1)${RST} 3X-UI"
-echo -e "  ${BLD}2)${RST} Pasargard"
+echo -e "  ${BLD}2)${RST} Pasarguard"
 echo ""
 
 while true; do

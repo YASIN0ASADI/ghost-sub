@@ -4,13 +4,13 @@
 
 # 👻 Ghost Sub
 ### Premium Subscription Page Template
-#### Compatible with 3X-UI & Pasargard
+#### Compatible with 3X-UI & Pasarguard
 
 <br/>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![3X-UI](https://img.shields.io/badge/3X--UI-Compatible-brightgreen)](https://github.com/MHSanaei/3x-ui)
-[![Pasargard](https://img.shields.io/badge/Pasargard-Compatible-blueviolet)](https://github.com/PasarGuard/panel)
+[![Pasargard](https://img.shields.io/badge/Pasarguard-Compatible-blueviolet)](https://github.com/PasarGuard/panel)
 [![FA | EN](https://img.shields.io/badge/Language-FA%20%7C%20EN-blue)](.)
 [![Stars](https://img.shields.io/github/stars/YASIN0ASADI/ghost-sub?style=social)](.)
 
@@ -107,7 +107,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/i
 
 ---
 
-### Pasargard
+### Pasarguard
 
 مطمئن شو این دو خط توی `/opt/pasarguard/.env` هست:
 
@@ -143,19 +143,7 @@ sudo bash install.sh
 | `@yourchannel` | یوزرنیم تلگرامت |
 | `https://t.me/yourchannel` | لینک تلگرامت |
 
----
 
-## 📁 ساختار ریپو
-
-```
-ghost-sub/
-├── sub.html           ← تمپلت 3X-UI
-├── pasargard.html     ← تمپلت Pasargard
-├── install.sh         ← اسکریپت نصب خودکار (هر دو پنل)
-└── README.md          ← همین فایل
-```
-
----
 
 ## ❓ سوالات متداول
 
