@@ -14,7 +14,7 @@ BLD='\033[1m'
 RST='\033[0m'
 
 REPO_RAW_3XUI="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/sub.html"
-REPO_RAW_PG="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/pasarguard.html"
+REPO_RAW_PG="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/pasargard.html"
 
 clear
 echo ""
@@ -40,7 +40,7 @@ echo -e "  ${BLD}Select your panel:${RST}"
 echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo ""
 echo -e "  ${BLD}1)${RST} 3X-UI"
-echo -e "  ${BLD}2)${RST} Pasarguard"
+echo -e "  ${BLD}2)${RST} Pasargard"
 echo ""
 
 while true; do
@@ -93,7 +93,7 @@ if [[ "$PANEL_CHOICE" == "1" ]]; then
   INSTALL_DIR="/etc/3x-ui/sub_templates/my-theme"
   OUTPUT_FILE="$INSTALL_DIR/index.html"
 else
-  PANEL_NAME="Pasarguard"
+  PANEL_NAME="Pasargard"
   REPO_RAW="$REPO_RAW_PG"
   INSTALL_DIR="/var/lib/pasarguard/templates/subscription"
   OUTPUT_FILE="$INSTALL_DIR/index.html"
