@@ -878,7 +878,7 @@ const RAW={
   total: `{{ user.data_limit or 0 }}`,
   up: `{{ user.used_traffic or 0 }}`,
   down: `0`,
-  expire: `{{ user.expire or 0 }}`,
+  expire: `{{ user.expire.timestamp().__int__() * 1000 if user.expire else 0 }}`,
   enable: `{{ user.status.value }}`,
   links: `{% for link in links %}{{ link }}
 {% endfor %}`,
