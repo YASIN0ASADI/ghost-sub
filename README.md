@@ -10,7 +10,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![3X-UI](https://img.shields.io/badge/3X--UI-Compatible-brightgreen)](https://github.com/MHSanaei/3x-ui)
-[![Pasargard](https://img.shields.io/badge/Pasarguard-Compatible-blueviolet)](https://github.com/PasarGuard/panel)
+[![Pasargaurd](https://img.shields.io/badge/Pasarguard-Compatible-blueviolet)](https://github.com/PasarGuard/panel)
 [![FA | EN](https://img.shields.io/badge/Language-FA%20%7C%20EN-blue)](.)
 [![Stars](https://img.shields.io/github/stars/YASIN0ASADI/ghost-sub?style=social)](.)
 
