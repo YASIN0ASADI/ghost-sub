@@ -1,0 +1,23 @@
+[Unit]
+Description=Ghost Sub IP subscription and monitor gateway
+After=network-online.target ghost-status.service
+Wants=network-online.target
+[Service]
+User=ghost-gateway
+Group=ghost-gateway
+ExecStart=/usr/bin/python3 -I /opt/ghost-gateway/server.py --config /etc/ghost-gateway/config.json
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+[Install]
+WantedBy=multi-user.target

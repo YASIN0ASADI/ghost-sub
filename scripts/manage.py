@@ -13,7 +13,7 @@ def root_terminal():
     if os.geteuid()!=0 or not sys.stdin.isatty():print('Changes require root and an interactive terminal.');return False
     return True
 
-def confirm(text):return input(text+' Type YES: ').strip()=='YES'
+def confirm(text):return input(text+' [y/N]: ').strip().lower() in ('y','yes')
 
 def panel():
     for k,(name,_) in PANELS.items():print(k+') '+name)
@@ -36,7 +36,7 @@ def diagnostics():
             print('  Server feed configured: '+str(bool(state.get('status_feed'))))
             print('  3X-UI history route configured: '+str(bool(state.get('usage_base'))))
         except (OSError,ValueError):print(name+': unreadable/invalid template settings')
-    for unit in ['ghost-tracker.service','ghost-history.service','ghost-status.service']:
+    for unit in ['ghost-tracker.service','ghost-history.service','ghost-status.service','ghost-gateway.service']:
         print('\n'+unit)
         run(['systemctl','show',unit,'--no-pager','-p','LoadState','-p','ActiveState','-p','SubState','-p','NRestarts'])
     file=Path('/etc/ghost-history/config.json');db=Path('/var/lib/ghost-history/history.sqlite3')
@@ -108,10 +108,49 @@ def status_setup():
                 if os.path.exists(tmp):os.unlink(tmp)
     else:raise ValueError('Invalid mode')
     if candidate is None and run(['bash',ROOT/'status-monitor/install.sh',config]):return
-    print('Next: expose the monitor feed through your subscription web origin, then set Status feed.')
-    print('Importing targets does not automatically configure the web proxy route.')
-    if confirm('Start/restart only ghost-status.service now?'):run(['systemctl','restart','ghost-status.service'])
-    if confirm('Enable ghost-status.service at boot?'):run(['systemctl','enable','ghost-status.service'])
+    print('Monitor targets configured. A domain-free subscription entrance can connect the chart automatically.')
+    if confirm('Start/restart only ghost-status.service now?'):run(['systemctl','restart','ghost-status.service','ghost-gateway.service'])
+    if confirm('Enable ghost-status.service at boot?'):run(['systemctl','enable','ghost-status.service','ghost-gateway.service'])
+    if confirm('Connect the chart using an IP:port entrance now?'):gateway_setup()
+
+def gateway_setup():
+    import getpass,socket,urllib.parse
+    source=''
+    monitor=Path('/etc/ghost-status/config.json')
+    if monitor.is_file():source=json.loads(monitor.read_text()).get('subscription_source','')
+    if not source:source=getpass.getpass('Existing full subscription URL (hidden): ').strip()
+    importer=module(ROOT/'status-monitor/subscription.py','subscription')
+    url=importer.validate_url(source)
+    port=int(input('New public subscription port [18090]: ').strip() or '18090')
+    upstream=int(input('LOCAL HTTP subscription port ['+str(url.port or 2096)+']: ').strip() or str(url.port or 2096))
+    host=input('Public server IP ['+url.hostname+']: ').strip() or url.hostname
+    import re
+    if not re.fullmatch(r'[A-Za-z0-9.\-]+',host):raise ValueError('Invalid public IPv4/DNS host')
+    prefix=url.path.rsplit('/',1)[0]+'/'
+    candidate={'listen_port':port,'upstream_port':upstream,'path_prefix':prefix}
+    gateway=module(ROOT/'gateway/server.py','gateway')
+    destination=Path('/etc/ghost-gateway/config.json')
+    existing={}
+    if destination.is_file():existing=json.loads(destination.read_text())
+    active=subprocess.run(['systemctl','is-active','--quiet','ghost-gateway.service'],capture_output=True).returncode==0
+    with tempfile.TemporaryDirectory() as d:
+        file=Path(d)/'config.json';file.write_text(json.dumps(candidate));gateway.config(file)
+        if not (active and existing.get('listen_port')==port):
+            try:
+                with socket.socket() as listener:listener.bind(('0.0.0.0',port))
+            except OSError:print('Public port already in use; choose another port. Nothing changed.');return
+        print('This adds an HTTP subscription entrance on port '+str(port)+'. No domain or Apache/Nginx changes.')
+        print('Existing subscription port and mini-app stay in place. Subscription links are private; HTTP is unencrypted.')
+        if not confirm('Install, start/restart and enable this gateway at boot?'):return
+        if run(['bash',ROOT/'gateway/install.sh',file]):return
+    if run(['systemctl','restart','ghost-gateway.service']):return
+    if run(['systemctl','enable','ghost-gateway.service']):return
+    public=urllib.parse.urlunsplit(('http',host+':'+str(port),url.path,url.query,''))
+    print('Use this NEW subscription link in the browser/apps (do not post it publicly):')
+    print(public)
+    print('Status feed is injected automatically on this entrance; no Status feed field needed.')
+    print('If external access is blocked, allow only TCP '+str(port)+' in your existing firewall/provider rules.')
+    print('The old subscription URL still works but does not use this gateway.')
 
 def rollback():
     key,(name,folder)=panel();choices=[]
@@ -141,17 +180,18 @@ def rollback():
 
 def main():
     while True:
-        print('\nGhost Sub Manager\n1) Install/apply bundled template version\n2) Change brand/logo/default theme (installer)\n3) Configure 3X-UI usage history\n4) Configure server reachability monitor\n5) Read-only installation checks\n6) Restore matching template backup\n0) Exit')
+        print('\nGhost Sub Manager\n1) Install/apply bundled template version\n2) Change brand/logo/default theme (installer)\n3) Configure 3X-UI usage history\n4) Configure server reachability monitor\n5) Read-only installation checks\n6) Restore matching template backup\n7) Connect chart without a domain (IP:port)\n0) Exit')
         try:
             choice=input('Select: ').strip()
             if choice=='0':return
             if choice=='5':diagnostics();continue
-            if choice not in ('1','2','3','4','6'):print('Invalid selection');continue
+            if choice not in ('1','2','3','4','6','7'):print('Invalid selection');continue
             if not root_terminal():continue
             if choice in ('1','2'):run(['bash',ROOT/'scripts/install_template.sh'])
             elif choice=='3':history_setup()
             elif choice=='4':status_setup()
             elif choice=='6':rollback()
+            elif choice=='7':gateway_setup()
         except (EOFError,KeyboardInterrupt):print('\nClosed.');return
         except (OSError,ValueError):print('Operation could not complete; no credentials are printed. Review configuration privately.')
 if __name__=='__main__':main()
