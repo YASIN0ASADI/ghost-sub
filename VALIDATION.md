@@ -41,3 +41,9 @@ Local candidate from the eight uploaded source files. No GitHub push or server i
 - Browser: 3X-UI preview English/Persian, week bars and month line chart visible; Persian mobile document width and scroll width both 375px. Preview uses clearly labelled illustrative data only; its history cache is intentionally permanent for offline demonstration.
 - Terminal manager installs bundled sources, configures optional collectors with explicit separate start/boot choices, reports read-only local checks and restores matching tagged template backups. It does not fetch releases, configure a reverse proxy, or provide whole-system/database rollback.
 - Real panel API/auth, public HTTPS history routing, fresh-server systemd lifecycle and live three-panel regressions are pending. No GitHub push, real credentials, or production/server changes.
+
+## One-command menu restoration
+- install.sh now downloads a complete source archive and opens the installed terminal menu, including when invoked via bash process substitution. Only an explicit application file whitelist is read from the archive; missing/non-regular files stop preparation.
+- Appearance installation moved to scripts/install_template.sh; menu options invoke it directly without recursively downloading/reopening the manager. No panel is restarted merely by entering the menu.
+- Two subprocess tests PASS: process-substitution command with mock download reaches menu; incomplete archive fails before host installer. Mock Python blocks all host installation. Existing 12 branding tests PASS; shell syntax PASS. Real remote download/system installation still requires a live host test after publication.
+- README restores the branded header/panel badges and original one-line command; test-count section removed at user request.

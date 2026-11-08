@@ -1,4 +1,19 @@
-# Ghost Sub
+<div align="center">
+
+# 👻 Ghost Sub
+
+### Premium Subscription Page Template
+
+#### 3X-UI · Pasarguard · Marzban
+
+[![3X-UI](https://img.shields.io/badge/3X--UI-Template-brightgreen)](https://github.com/MHSanaei/3x-ui)
+[![Pasarguard](https://img.shields.io/badge/Pasarguard-Template-blueviolet)](https://github.com/PasarGuard/panel)
+[![Marzban](https://img.shields.io/badge/Marzban-Template-orange)](https://github.com/Gozargah/Marzban)
+[![Language](https://img.shields.io/badge/Language-FA%20%7C%20EN-blue)](#)
+
+یه دستور. پنلت. تمت. اسم برندت.
+
+</div>
 
 صفحهٔ اشتراک برای **3X-UI، Marzban و Pasarguard**؛ با برند و لوگوی دلخواه، سه رنگ، فارسی/انگلیسی و چیدمان موبایل.
 
@@ -26,14 +41,17 @@
 
 به Python 3، Bash و curl نیاز دارید. نصب و مدیریت سرویس‌ها برای Linux با systemd در نظر گرفته شده است.
 
-**از پوشهٔ کامل نسخهٔ دانلودشده** اجرا کنید؛ تنها جایگزینی فایل HTML برای امکانات جدید کافی نیست:
+با همان دستور قبلی، با کاربر root اجرا کنید:
 
 ```bash
-sudo python3 -I scripts/install_manager.py
-sudo ghost-sub
+bash <(curl -fsSL https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main/install.sh)
 ```
 
-این فرمان اول فقط فایل‌های منو را نصب می‌کند؛ قالب، حساب سرویس، شبکه یا سرویس‌های در حال اجرا را تغییر نمی‌دهد. سپس از منو عملیات موردنظر را انتخاب کنید.
+نصاب فایل‌های کامل نسخهٔ فعلی را دریافت و منوی مدیریت را باز می‌کند. ورود به منو به‌تنهایی قالب یا سرویس پنل را restart نمی‌کند؛ عملیات را از منو انتخاب می‌کنید. دفعه‌های بعد برای بازکردن منوی نصب‌شده:
+
+```bash
+ghost-sub
+```
 
 | گزینه | کار |
 |---|---|
@@ -44,15 +62,9 @@ sudo ghost-sub
 | ۵ | بررسی محلی و فقط خواندنی |
 | ۶ | بازگردانی بکاپ مشخص همان پنل |
 
-برای اجرای مستقیم نصاب ظاهر:
+نصب ظاهر قبل از جایگزینی قالب بکاپ خصوصی می‌گیرد و پس از تأیید، پنل انتخاب‌شده را restart می‌کند؛ برای کاربران فعال زمان مناسب انتخاب کنید.
 
-```bash
-sudo bash install.sh
-```
-
-نصاب قبل از جایگزینی قالب بکاپ خصوصی می‌گیرد و پس از تأیید، پنل انتخاب‌شده را restart می‌کند؛ برای کاربران فعال زمان مناسب انتخاب کنید. دانلود مستقیم `install.sh` به‌تنهایی، منوی کامل و فایل‌های سرویس‌های جدید را نصب نمی‌کند.
-
-منو نسخهٔ داخل بسته را اعمال می‌کند و به‌صورت خودکار آخرین GitHub را دانلود نمی‌کند. برای ارتقا ابتدا بستهٔ جدید را کامل دریافت کنید و نصب منو را دوباره اجرا کنید.
+برای دریافت به‌روزرسانی، همان دستور تک‌خطی را دوباره اجرا کنید؛ سپس گزینهٔ نصب/اعمال قالب را انتخاب کنید. تنظیمات ذخیره‌شده با Enter حفظ می‌شوند.
 
 ## لوگو و برند
 
@@ -95,17 +107,6 @@ SUBSCRIPTION_PAGE_TEMPLATE="subscription/index.html"
 ## بکاپ و بازگردانی
 
 قالب و manifest قبلی در `/root/ghost-sub-backup.*` ذخیره می‌شوند؛ داخل پوشهٔ عمومی ساب قرار نمی‌گیرند. گزینهٔ۶ منو بکاپ‌های جدید دارای مشخصات همان پنل را بازمی‌گرداند و از وضعیت فعلی هم نسخهٔ بازیابی می‌گیرد. بکاپ‌های قدیمی بدون مشخصات، بررسی دستی می‌خواهند. این قابلیت بازگردانی کل سیستم، دیتابیس یا تنظیمات سرویس‌ها نیست.
-
-## بررسی‌ها
-
-۴۱ تست پایتون، بررسی جاوااسکریپت و آزمون‌های محلی پاسخ API اجرا شده‌اند. جزئیات و محدودیت‌ها در [VALIDATION.md](VALIDATION.md) آمده‌اند. سازگاری با همهٔ نسخه‌ها یا فورک‌های پنل ادعا نمی‌شود.
-
-```bash
-python3 -m unittest discover -s scripts -p test_branding.py
-python3 -m unittest discover -s traffic-history -p test_history.py
-python3 -m unittest discover -s status-monitor -p test_monitor.py
-node scripts/test_status_ui.cjs
-```
 
 ## ساختار
 

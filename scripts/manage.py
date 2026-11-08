@@ -122,7 +122,7 @@ def main():
             if choice=='5':diagnostics();continue
             if choice not in ('1','2','3','4','6'):print('Invalid selection');continue
             if not root_terminal():continue
-            if choice in ('1','2'):run(['bash',ROOT/'install.sh'])
+            if choice in ('1','2'):run(['bash',ROOT/'scripts/install_template.sh'])
             elif choice=='3':history_setup()
             elif choice=='4':status_setup()
             elif choice=='6':rollback()

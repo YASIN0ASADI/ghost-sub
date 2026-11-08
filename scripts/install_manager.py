@@ -3,7 +3,7 @@
 import argparse,os,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent.parent
-FILES=['install.sh','sub.html','marzban.html','pasarguard.html','manifest.json','scripts/branding.py','scripts/manage.py','scripts/install_manager.py','tracker/tracker.py','tracker/ghost-tracker.service','traffic-history/history.py','traffic-history/install.sh','traffic-history/ghost-history.service','status-monitor/monitor.py','status-monitor/install.sh','status-monitor/ghost-status.service']
+FILES=['install.sh','scripts/install_template.sh','sub.html','marzban.html','pasarguard.html','manifest.json','scripts/branding.py','scripts/manage.py','scripts/install_manager.py','tracker/tracker.py','tracker/ghost-tracker.service','traffic-history/history.py','traffic-history/install.sh','traffic-history/ghost-history.service','status-monitor/monitor.py','status-monitor/install.sh','status-monitor/ghost-status.service']
 
 def install(prefix):
     prefix=Path(prefix)
