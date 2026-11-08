@@ -66,24 +66,50 @@ def history_setup():
     if confirm('Enable ghost-history.service at boot?'):run(['systemctl','enable','ghost-history.service'])
 
 def status_setup():
+    import getpass
     config=Path('/etc/ghost-status/config.json')
-    if not config.exists():
-        print('Fixed TCP targets only. No browser-side scanning.')
-        probe=input('Probe location label: ').strip() or 'Monitoring server';targets=[]
-        while len(targets)<64:
-            host=input('Node host (Enter to finish): ').strip()
-            if not host:break
-            targets.append({'host':host,'port':int(input('Node TCP port: ')),'country':input('Country ISO2 (optional): ').strip().upper()})
-        candidate={'probe_label':probe,'interval_seconds':60,'timeout_seconds':3,'listen_port':19191,'targets':targets}
+    importer=module(ROOT/'status-monitor/subscription.py','subscription')
+    print('1) Automatic: import all TCP endpoints from ONE subscription link (default)')
+    print('2) Enter TCP endpoints manually')
+    if config.exists():print('3) Keep existing monitor settings')
+    mode=input('Mode [1]: ').strip() or '1'
+    candidate=None
+    if mode=='3' and config.exists():pass
+    elif mode in ('1','2'):
+        probe=input('Probe label [This server]: ').strip() or 'This server'
+        if mode=='1':
+            print('Paste your own full subscription URL locally. It stays in the private server config.')
+            print('For HTTP subscriptions the link travels without encryption; HTTPS is preferred.')
+            url=getpass.getpass('Subscription URL (hidden): ').strip()
+            try:items=importer.fetch(url)
+            except Exception:
+                print('Could not read supported TCP links. No settings changed; use the raw/base64 subscription URL.');return
+            candidate={'probe_label':probe,'interval_seconds':60,'timeout_seconds':3,'listen_port':19191,'targets':items,'subscription_source':url}
+            print(str(len(items))+' unique TCP endpoints found. The list refreshes automatically every 15 minutes.')
+        else:
+            items=[]
+            while len(items)<64:
+                host=input('Node host (Enter to finish): ').strip()
+                if not host:break
+                items.append({'host':host,'port':int(input('Node TCP port: ')),'country':input('Country ISO2 (optional): ').strip().upper()})
+            candidate={'probe_label':probe,'interval_seconds':60,'timeout_seconds':3,'listen_port':19191,'targets':items}
         m=module(ROOT/'status-monitor/monitor.py','monitor')
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/'config.json';p.write_text(json.dumps(candidate));m.config(p)
-            if not confirm('Save config and install monitor (no automatic start)?'):return
+            if not confirm('Save targets and install/update monitor (no automatic start)?'):return
             if run(['bash',ROOT/'status-monitor/install.sh',p]):return
-    else:
-        if not confirm('Retain existing config and install/update monitor files?'):return
-        if run(['bash',ROOT/'status-monitor/install.sh',config]):return
-    print('Publish only /status.json through the intended HTTPS subscription origin; set the feed in template appearance setup.')
+            # Installer intentionally retains existing config; replace only after explicit save above.
+            import grp
+            fd,tmp=tempfile.mkstemp(prefix='.config-',dir=config.parent)
+            try:
+                with os.fdopen(fd,'w') as f:json.dump(candidate,f)
+                os.chown(tmp,0,grp.getgrnam('ghost-status').gr_gid);os.chmod(tmp,0o640);os.replace(tmp,config)
+            finally:
+                if os.path.exists(tmp):os.unlink(tmp)
+    else:raise ValueError('Invalid mode')
+    if candidate is None and run(['bash',ROOT/'status-monitor/install.sh',config]):return
+    print('Next: expose the monitor feed through your subscription web origin, then set Status feed.')
+    print('Importing targets does not automatically configure the web proxy route.')
     if confirm('Start/restart only ghost-status.service now?'):run(['systemctl','restart','ghost-status.service'])
     if confirm('Enable ghost-status.service at boot?'):run(['systemctl','enable','ghost-status.service'])
 

@@ -52,3 +52,8 @@ Local candidate from the eight uploaded source files. No GitHub push or server i
 - Image address can be supplied directly; uploaded server files and HTTPS image URLs supported. Windows paths get an explicit upload explanation. Circle/rounded-square profile frames and saved shape verified.
 - Added bounded JPEG frame/scan header parsing and image/jpeg embedding; real JPEG fixture, malformed/truncated input and retention across reinstallation tested. This validates structure and bounds, not a complete image codec decoder. Existing PNG/WebP support remains.
 - 18 script tests PASS, including two mocked bootstrap checks. No real SSH transfer or production panel install executed here. README documents Windows full-file-path selection, SCP, optional monitor/history prompts and updates.
+
+## Subscription target discovery
+- Added admin-configured URL import for raw/base64 VLESS/Trojan/VMess/SS and rendered Ghost HTML; deduplicated bounded TCP endpoints only. No request-side scanning API.
+- Manager hidden input stores the subscription source in private config; monitor refreshes targets every 900 seconds and samples at its configured interval. Cross-origin redirects refused, reads bounded to 2 MiB, generic errors omit URL/token; public feed remains endpoint-ID/sample-only.
+- Eight importer tests PASS including real local HTTP response, format parsing, duplicate removal, IPv6, unsupported TCP transports and endpoint-count bounds; existing 11 monitor and 18 script tests PASS. No live panel subscription or proxy route tested.

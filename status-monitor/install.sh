@@ -11,7 +11,7 @@ spec=importlib.util.spec_from_file_location('ghost_status',sys.argv[1]+'/monitor
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 m.config(sys.argv[2]);print('Offline monitor configuration: OK; no probes executed')
 PY
-for file in /opt/ghost-status /opt/ghost-status/monitor.py /etc/ghost-status /etc/ghost-status/config.json /etc/systemd/system/ghost-status.service; do
+for file in /opt/ghost-status /opt/ghost-status/monitor.py /opt/ghost-status/subscription.py /etc/ghost-status /etc/ghost-status/config.json /etc/systemd/system/ghost-status.service; do
   [[ ! -L "$file" ]] || { echo 'Refusing symlink destination'; exit 1; }
 done
 if [[ -e /etc/ghost-status/config.json ]]; then
@@ -29,6 +29,7 @@ backup=$(mktemp -d /root/ghost-status-backup.XXXXXX)
 [[ ! -f /opt/ghost-status/monitor.py ]] || cp -p /opt/ghost-status/monitor.py "$backup/monitor.py"
 [[ ! -f /etc/systemd/system/ghost-status.service ]] || cp -p /etc/systemd/system/ghost-status.service "$backup/ghost-status.service"
 install -m 644 "$source_dir/monitor.py" /opt/ghost-status/monitor.py
+install -m 644 "$source_dir/subscription.py" /opt/ghost-status/subscription.py
 install -m 644 "$source_dir/ghost-status.service" /etc/systemd/system/ghost-status.service
 systemctl daemon-reload
 printf 'Installed; no service started/restarted/enabled. Backup: %s\n' "$backup"

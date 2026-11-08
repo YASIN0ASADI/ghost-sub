@@ -2,6 +2,10 @@
 """Fixed-target TCP reachability samples; no panel credentials, OS uptime or proxy health claims."""
 import argparse, concurrent.futures, hashlib, http.server, ipaddress, json, os, re, socket, sqlite3, tempfile, threading, time
 from pathlib import Path
+import importlib.util
+_spec=importlib.util.spec_from_file_location('ghost_subscription',Path(__file__).with_name('subscription.py'))
+subscription=importlib.util.module_from_spec(_spec);_spec.loader.exec_module(subscription)
+
 
 
 def endpoint_id(host, port):
@@ -10,6 +14,7 @@ def endpoint_id(host, port):
 
 def config(path):
     c=json.loads(Path(path).read_text())
+    if c.get('subscription_source'):subscription.validate_url(c['subscription_source'])
     c.setdefault('interval_seconds',60);c.setdefault('timeout_seconds',3)
     c.setdefault('listen_port',19191);c.setdefault('probe_label','Monitoring server')
     if not 30<=c['interval_seconds']<=3600 or not 0.1<=c['timeout_seconds']<=10:
@@ -121,8 +126,17 @@ def main():
     server.daemon_threads=True
     threading.Thread(target=server.serve_forever,daemon=True).start()
     try:
+        next_refresh=0
         while True:
-            started=time.monotonic();data=cycle(db,c)
+            started=time.monotonic()
+            if c.get('subscription_source') and started>=next_refresh:
+                try:
+                    imported=subscription.fetch(c['subscription_source'])
+                    for target in imported:target['id']=endpoint_id(target['host'],target['port'])
+                    c['targets']=imported
+                except Exception:print('Subscription refresh failed; retaining last target list.',flush=True)
+                next_refresh=started+900
+            data=cycle(db,c)
             with lock:live['data']=data
             if a.output:atomic_json(a.output,data)
             time.sleep(max(0,c['interval_seconds']-(time.monotonic()-started)))
