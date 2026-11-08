@@ -1,0 +1,28 @@
+[Unit]
+Description=Ghost Sub fixed-target TCP reachability monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ghost-status
+Group=ghost-status
+ExecStart=/usr/bin/python3 -I /opt/ghost-status/monitor.py --config /etc/ghost-status/config.json
+Restart=on-failure
+RestartSec=10
+StateDirectory=ghost-status
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

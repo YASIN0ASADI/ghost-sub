@@ -1,0 +1,4 @@
+preview/
+.openai/
+__pycache__/
+*.pyc

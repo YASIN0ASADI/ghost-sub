@@ -1,0 +1,9 @@
+{
+  "probe_label": "Outside monitoring server",
+  "interval_seconds": 60,
+  "timeout_seconds": 3,
+  "listen_port": 19191,
+  "targets": [
+    {"host": "YOUR_NODE_HOST", "port": 443, "country": "DE"}
+  ]
+}

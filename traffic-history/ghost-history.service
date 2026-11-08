@@ -1,0 +1,26 @@
+[Unit]
+Description=Ghost Sub optional 3X-UI usage history
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ghost-history
+Group=ghost-history
+ExecStart=/usr/bin/python3 -I /opt/ghost-history/history.py --config /etc/ghost-history/config.json
+StateDirectory=ghost-history
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

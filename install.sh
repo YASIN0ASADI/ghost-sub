@@ -1,186 +1,86 @@
 #!/usr/bin/env bash
-# ╔══════════════════════════════════════════════════════════════╗
-# ║          Ghost Sub — Universal Installer                     ║
-# ║          github.com/YASIN0ASADI/ghost-sub                   ║
-# ╚══════════════════════════════════════════════════════════════╝
-
-set -e
-
-RED='\033[0;31m'
-GRN='\033[0;32m'
-YLW='\033[1;33m'
-CYN='\033[0;36m'
-PRP='\033[0;35m'
-BLD='\033[1m'
-DIM='\033[2m'
-RST='\033[0m'
-
+# Ghost Sub — visual refresh installer. Usage Tracker flow retained below.
+set -euo pipefail
 BASE_URL="https://raw.githubusercontent.com/YASIN0ASADI/ghost-sub/main"
-
-clear
-echo ""
-echo -e "${CYN}╔══════════════════════════════════════════════════════════╗${RST}"
-echo -e "${CYN}║${RST}    👻  ${BLD}Ghost Sub — Universal Installer${RST}                ${CYN}║${RST}"
-echo -e "${CYN}║${RST}         github.com/YASIN0ASADI/ghost-sub               ${CYN}║${RST}"
-echo -e "${CYN}╚══════════════════════════════════════════════════════════╝${RST}"
-echo ""
-
-# ── Root check ──────────────────────────────────────────────────
-if [[ $EUID -ne 0 ]]; then
-  echo -e "${RED}[✗] Run as root:  sudo bash install.sh${RST}"
-  exit 1
-fi
-
-for cmd in curl sed; do
-  command -v "$cmd" &>/dev/null || apt-get install -y "$cmd" -qq 2>/dev/null || true
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+RED='\033[0;31m'; GRN='\033[0;32m'; YLW='\033[1;33m'; CYN='\033[0;36m'; BLD='\033[1m'; DIM='\033[2m'; RST='\033[0m'
+[[ $EUID == 0 ]] || { echo 'Run as root: sudo bash install.sh'; exit 1; }
+for cmd in curl python3; do
+  command -v "$cmd" >/dev/null || { echo "Missing dependency: $cmd. Install it first."; exit 1; }
 done
-
-# ── Panel selection ─────────────────────────────────────────────
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "  ${BLD}Select your panel:${RST}"
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo ""
-echo -e "  ${BLD}1)${RST} 3X-UI"
-echo -e "  ${BLD}2)${RST} Pasarguard"
-echo -e "  ${BLD}3)${RST} Marzban"
-echo ""
-
-while true; do
-  read -rp "  ➤ Enter 1, 2 or 3: " PANEL_CHOICE
-  PANEL_CHOICE=$(echo "$PANEL_CHOICE" | xargs)
-  [[ "$PANEL_CHOICE" =~ ^[123]$ ]] && break
-  echo -e "  ${RED}[✗] Please enter 1, 2 or 3.${RST}"
-done
-
-echo ""
-
-# ── Theme selection ─────────────────────────────────────────────
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "  ${BLD}Select your default theme:${RST}"
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo ""
-echo -e "  ${RED}${BLD}1)${RST} ${RED}Red${RST}         (پیش‌فرض قرمز)"
-echo -e "  ${GRN}${BLD}2)${RST} ${GRN}Green${RST}       (پیش‌فرض سبز)"
-echo -e "  ${PRP}${BLD}3)${RST} ${PRP}Blue/Purple${RST} (پیش‌فرض آبی-بنفش)"
-echo ""
-echo -e "  ${DIM}(کاربر می‌تونه بعداً توی خود صفحه تم رو عوض کنه)${RST}"
-echo ""
-
-while true; do
-  read -rp "  ➤ Enter 1, 2 or 3: " THEME_CHOICE
-  THEME_CHOICE=$(echo "$THEME_CHOICE" | xargs)
-  [[ "$THEME_CHOICE" =~ ^[123]$ ]] && break
-  echo -e "  ${RED}[✗] Please enter 1, 2 or 3.${RST}"
-done
-
-case "$THEME_CHOICE" in
-  1) THEME_NAME="red";   THEME_CLASS="" ;;
-  2) THEME_NAME="green"; THEME_CLASS="theme-green" ;;
-  3) THEME_NAME="blue";  THEME_CLASS="theme-blue" ;;
-esac
-
-echo ""
-
-# ── Branding info ───────────────────────────────────────────────
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "  ${BLD}Enter your branding info:${RST}"
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo ""
-
-while true; do
-  echo -e "  ${BLD}Brand / Service Name${RST}  ${YLW}(e.g: DARK VPN, PHANTOM, GHOST NET)${RST}"
-  read -rp "  ➤ Brand name: " BRAND_NAME
-  BRAND_NAME=$(echo "$BRAND_NAME" | xargs)
-  [[ -n "$BRAND_NAME" ]] && break
-  echo -e "  ${RED}[✗] Cannot be empty.${RST}"
-done
-
-BRAND_UPPER=$(echo "$BRAND_NAME" | tr '[:lower:]' '[:upper:]')
-
-# ── Set paths based on panel ────────────────────────────────────
+printf '\nGhost Sub — Appearance setup\n\n1) 3X-UI\n2) Pasarguard\n3) Marzban\n'
+read -rp 'Panel [1/2/3]: ' PANEL_CHOICE
 case "$PANEL_CHOICE" in
-  1)
-    PANEL_NAME="3X-UI"
-    REPO_RAW="$BASE_URL/sub.html"
-    INSTALL_DIR="/etc/3x-ui/sub_templates/my-theme"
-    OUTPUT_FILE="$INSTALL_DIR/index.html"
-    ;;
-  2)
-    PANEL_NAME="Pasarguard"
-    REPO_RAW="$BASE_URL/pasarguard.html"
-    INSTALL_DIR="/var/lib/pasarguard/templates/subscription"
-    OUTPUT_FILE="$INSTALL_DIR/index.html"
-    ;;
-  3)
-    PANEL_NAME="Marzban"
-    REPO_RAW="$BASE_URL/marzban.html"
-    INSTALL_DIR="/var/lib/marzban/templates/subscription"
-    OUTPUT_FILE="$INSTALL_DIR/index.html"
-    ;;
+  1) PANEL_NAME='3X-UI'; TEMPLATE='sub.html'; INSTALL_DIR='/etc/3x-ui/sub_templates/my-theme';;
+  2) PANEL_NAME='Pasarguard'; TEMPLATE='pasarguard.html'; INSTALL_DIR='/var/lib/pasarguard/templates/subscription';;
+  3) PANEL_NAME='Marzban'; TEMPLATE='marzban.html'; INSTALL_DIR='/var/lib/marzban/templates/subscription';;
+  *) echo 'Invalid panel; nothing changed'; exit 1;;
 esac
-
-# ── Summary ─────────────────────────────────────────────────────
-echo ""
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "  Panel  : ${GRN}${PANEL_NAME}${RST}"
-echo -e "  Theme  : ${GRN}${THEME_NAME}${RST}"
-echo -e "  Brand  : ${GRN}${BRAND_UPPER}${RST}"
-echo -e "  Path   : ${GRN}${OUTPUT_FILE}${RST}"
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo ""
-read -rp "  Confirm install? [Y/n]: " CONFIRM
-CONFIRM="${CONFIRM:-Y}"
-[[ ! "$CONFIRM" =~ ^[Yy]$ ]] && echo -e "${YLW}  Cancelled.${RST}" && exit 0
-
-echo ""
-TMP_FILE=$(mktemp /tmp/ghost_sub_XXXXXX.html)
-
-# ── Download ────────────────────────────────────────────────────
-echo -e "${BLD}[1/4]${RST} Downloading template..."
-if ! curl -fsSL "$REPO_RAW" -o "$TMP_FILE"; then
-  echo -e "${RED}[✗] Download failed. Check your connection.${RST}"
-  rm -f "$TMP_FILE"; exit 1
-fi
-echo -e "    ${GRN}✓ Downloaded${RST}"
-
-# ── Branding ────────────────────────────────────────────────────
-echo -e "${BLD}[2/4]${RST} Applying your branding..."
-sed -i "s|YOUR BRAND|${BRAND_UPPER}|g" "$TMP_FILE"
-echo -e "    ${GRN}✓ Branding applied${RST}"
-
-# ── Apply default theme ──────────────────────────────────────────
-echo -e "${BLD}[3/4]${RST} Applying theme..."
+OUTPUT_FILE="$INSTALL_DIR/index.html"
+echo 'Existing refresh-version branding can be kept by pressing Enter.'
+echo 'For an older installation, enter its brand again on the first update.'
+read -rp 'Brand name (Enter: keep saved): ' BRAND_NAME
+read -rp 'Default theme [1 red / 2 green / 3 blue; Enter: keep saved or red]: ' THEME_CHOICE
 case "$THEME_CHOICE" in
-  1) sed -i "s/^let themeIndex = [0-9];/let themeIndex = 0;/" "$TMP_FILE" ;;
-  2) sed -i "s/^let themeIndex = [0-9];/let themeIndex = 1;/" "$TMP_FILE" ;;
-  3) sed -i "s/^let themeIndex = [0-9];/let themeIndex = 2;/" "$TMP_FILE" ;;
+  '') THEME_NAME='';; 1) THEME_NAME='red';; 2) THEME_NAME='green';; 3) THEME_NAME='blue';;
+  *) echo 'Invalid theme; nothing changed'; exit 1;;
 esac
-echo -e "    ${GRN}✓ Theme: ${THEME_NAME}${RST}"
-
-# ── Install ──────────────────────────────────────────────────────
-echo -e "${BLD}[4/4]${RST} Installing..."
-mkdir -p "$INSTALL_DIR"
-cp "$TMP_FILE" "$OUTPUT_FILE"
-chmod 644 "$OUTPUT_FILE"
-rm -f "$TMP_FILE"
-
-# PWA manifest
-MANIFEST_SRC="$(dirname "$0")/manifest.json"
-MANIFEST_DST="$(dirname "$OUTPUT_FILE")/manifest.json"
-if [[ -f "$MANIFEST_SRC" ]]; then
-  cp "$MANIFEST_SRC" "$MANIFEST_DST"
-  chmod 644 "$MANIFEST_DST"
-  echo -e "    ${GRN}✓ manifest.json installed${RST}"
-else
-  # اگه manifest.json کنار اسکریپت نبود، یه نسخه inline می‌سازیم
-  cat > "$MANIFEST_DST" << 'MEOF'
-{"name":"Ghost Sub","short_name":"Sub","display":"standalone","background_color":"#05070a","theme_color":"#ff2a2a","start_url":"./","icons":[{"src":"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%23ff2a2a'/><text y='130' x='96' text-anchor='middle' font-size='110' font-family='sans-serif'>👻</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}
-MEOF
-  chmod 644 "$MANIFEST_DST"
-  echo -e "    ${GRN}✓ manifest.json created${RST}"
+echo 'Header logo: 1) Ghost  2) Your logo (PNG/WebP)  3) No logo'
+read -rp 'Logo [1/2/3; Enter: keep saved or Ghost]: ' LOGO_CHOICE
+LOGO_SOURCE=''
+case "$LOGO_CHOICE" in
+  '') LOGO_MODE='keep';; 1) LOGO_MODE='ghost';; 3) LOGO_MODE='none';;
+  2) LOGO_MODE='custom'; read -rp 'Local path or HTTPS logo URL (max 256 KiB / 2048 px): ' LOGO_SOURCE;;
+  *) echo 'Invalid logo choice; nothing changed'; exit 1;;
+esac
+echo 'Optional measured server status: enter the public JSON feed path/HTTPS URL.'
+echo 'Enter keeps saved settings; type off to disable. No feed means Unknown.'
+read -rp 'Status feed [e.g. /ghost-status.json]: ' STATUS_FEED
+STATUS_ARGS=()
+if [[ "$STATUS_FEED" == off ]]; then STATUS_ARGS=(--status-feed '');
+elif [[ -n "$STATUS_FEED" ]]; then STATUS_ARGS=(--status-feed "$STATUS_FEED"); fi
+USAGE_ARGS=()
+if [[ "$PANEL_CHOICE" == 1 ]]; then
+ echo 'Optional 3X-UI usage history (separate collector required).'
+ read -rp 'History route [e.g. /ghost-usage/; Enter keep / off disable]: ' USAGE_BASE
+ if [[ "$USAGE_BASE" == off ]]; then USAGE_ARGS=(--usage-base '');
+ elif [[ -n "$USAGE_BASE" ]]; then USAGE_ARGS=(--usage-base "$USAGE_BASE"); fi
 fi
-
-echo -e "    ${GRN}✓ Installed${RST}"
+echo "Panel: $PANEL_NAME | Destination: $OUTPUT_FILE"
+echo 'The existing template/manifest will be backed up. Tracker settings remain separate.'
+read -rp 'Install and restart selected panel? [y/N]: ' CONFIRM
+[[ "$CONFIRM" =~ ^[Yy]$ ]] || { echo 'Cancelled'; exit 0; }
+TMP_WORK=$(mktemp -d)
+trap 'rm -rf -- "$TMP_WORK"' EXIT
+get_source() {
+  local path=$1 destination=$2
+  if [[ -f "$SCRIPT_DIR/$path" ]]; then cp -- "$SCRIPT_DIR/$path" "$destination";
+  else curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' "$BASE_URL/$path" -o "$destination"; fi
+}
+get_source "$TEMPLATE" "$TMP_WORK/template.html"
+get_source scripts/branding.py "$TMP_WORK/branding.py"
+python3 -I "$TMP_WORK/branding.py" --template "$TMP_WORK/template.html" \
+  --output "$TMP_WORK/index.html" --previous "$OUTPUT_FILE" \
+  --brand "$BRAND_NAME" --theme "$THEME_NAME" --logo-mode "$LOGO_MODE" \
+  --logo-source "$LOGO_SOURCE" --manifest "$TMP_WORK/manifest.json" "${STATUS_ARGS[@]}" "${USAGE_ARGS[@]}"
+# Preparation above does not overwrite existing template or panel settings.
+[[ ! -L "$INSTALL_DIR" && ! -L "$OUTPUT_FILE" && ! -L "$INSTALL_DIR/manifest.json" ]] || { echo 'Refusing symlink destination'; exit 1; }
+mkdir -p -- "$INSTALL_DIR"
+if [[ -e "$OUTPUT_FILE" || -e "$INSTALL_DIR/manifest.json" ]]; then
+  PRIVATE_BACKUP=$(mktemp -d /root/ghost-sub-backup.XXXXXX)
+  [[ ! -f "$OUTPUT_FILE" ]] || cp -p -- "$OUTPUT_FILE" "$PRIVATE_BACKUP/index.html"
+  [[ ! -f "$INSTALL_DIR/manifest.json" ]] || cp -p -- "$INSTALL_DIR/manifest.json" "$PRIVATE_BACKUP/manifest.json"
+  python3 -I - "$PRIVATE_BACKUP/panel.json" "$PANEL_CHOICE" "$OUTPUT_FILE" <<'PYMETA'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);p.write_text(json.dumps({'panel':sys.argv[2],'destination':sys.argv[3]}));p.chmod(0o600)
+PYMETA
+  echo "Private backup: $PRIVATE_BACKUP"
+fi
+install -m 644 "$TMP_WORK/index.html" "$OUTPUT_FILE"
+install -m 644 "$TMP_WORK/manifest.json" "$INSTALL_DIR/manifest.json"
+BRAND_UPPER="$BRAND_NAME"
+echo 'Appearance installed. Brand, logo and theme are stored in the template for the next update.'
 
 # ── Restart panel ────────────────────────────────────────────────
 echo ""
@@ -373,3 +273,8 @@ CFGEOF
   echo ""
 fi
 
+
+# Bundled manager installation; no additional service lifecycle changes.
+if [[ -f "$SCRIPT_DIR/scripts/install_manager.py" ]]; then
+  python3 -I "$SCRIPT_DIR/scripts/install_manager.py"
+fi
