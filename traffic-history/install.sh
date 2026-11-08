@@ -33,4 +33,4 @@ install -m 644 "$source_dir/ghost-history.service" /etc/systemd/system/ghost-his
 systemctl daemon-reload
 printf 'Installed; no service started/restarted/enabled. Backup: %s\n' "$backup"
 echo 'Next, review config, then explicitly run: systemctl start ghost-history.service'
-echo 'Publish /history/ only through the protected subscription-token route; see 3XUI_HISTORY_FA.md.'
+echo 'Publish /history/ only through the protected subscription-token route; see docs/3XUI_HISTORY_FA.md.'

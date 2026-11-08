@@ -6,10 +6,10 @@
 
 #### 3X-UI · Pasarguard · Marzban
 
-[![3X-UI](https://img.shields.io/badge/3X--UI-Template-brightgreen)](https://github.com/MHSanaei/3x-ui)
-[![Pasarguard](https://img.shields.io/badge/Pasarguard-Template-blueviolet)](https://github.com/PasarGuard/panel)
-[![Marzban](https://img.shields.io/badge/Marzban-Template-orange)](https://github.com/Gozargah/Marzban)
-[![Language](https://img.shields.io/badge/Language-FA%20%7C%20EN-blue)](#)
+<img src="screenshots/badges/3x-ui.svg" alt="3X-UI" height="22">
+<img src="screenshots/badges/pasarguard.svg" alt="Pasarguard" height="22">
+<img src="screenshots/badges/marzban.svg" alt="Marzban" height="22">
+<img src="screenshots/badges/language.svg" alt="FA | EN" height="22">
 
 یه دستور. پنلت. تمت. اسم برندت.
 
@@ -17,7 +17,6 @@
 
 صفحهٔ اشتراک برای **3X-UI، Marzban و Pasarguard**؛ با برند و لوگوی دلخواه، سه رنگ، فارسی/انگلیسی و چیدمان موبایل.
 
-**وضعیت این بازطراحی: نسخهٔ آزمایشی.** تست‌های محلی پاس شده‌اند؛ تاریخچهٔ جدید ثنایی هنوز روی پنل واقعی تأیید نشده است. ابتدا روی پنل آزمایشی نصب کنید.
 
 ## پیش‌نمایش
 
@@ -76,8 +75,8 @@ ghost-sub
 |---|---|---|
 | مصرف فعلی | مقادیر خود پنل در قالب | نیازمند فعال‌بودن صفحهٔ ساب پنل |
 | تاریخچهٔ Marzban/Pasarguard | Tracker قبلی یا fallback موجود مرورگر | جریان نصب قبلی حفظ شده است |
-| تاریخچهٔ 3X-UI | collector جدا با دسترسی API سمت سرور | [راهنمای ثنایی](3XUI_HISTORY_FA.md) |
-| نمودار دسترسی سرورها | نمونه‌برداری TCP از سرور مانیتور | [راهنمای مانیتور](STATUS_MONITOR_FA.md) |
+| تاریخچهٔ 3X-UI | collector جدا با دسترسی API سمت سرور | [راهنمای ثنایی](docs/3XUI_HISTORY_FA.md) |
+| نمودار دسترسی سرورها | نمونه‌برداری TCP از سرور مانیتور | [راهنمای مانیتور](docs/STATUS_MONITOR_FA.md) |
 
 نصب قالب به‌تنهایی پایش یا تاریخچه را فعال نمی‌کند. برای سرویس‌های جدید، پیکربندی، start و فعال‌سازی هنگام بوت انتخاب‌های جدا هستند؛ ارائهٔ داده از مسیر HTTPS هم‌مبدأ نیازمند تنظیم reverse proxy است.
 
@@ -113,7 +112,8 @@ SUBSCRIPTION_PAGE_TEMPLATE="subscription/index.html"
 ```text
 sub.html / marzban.html / pasarguard.html
 install.sh / manifest.json
-scripts/          branding، منو و آزمون‌ها
+scripts/          ابزارهای نصب و مدیریت
+docs/             راهنماهای فنی
 tracker/          Tracker قبلی
 traffic-history/    تاریخچهٔ اختیاری ثنایی
 status-monitor/   پایش اختیاری TCP

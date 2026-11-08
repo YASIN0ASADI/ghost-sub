@@ -33,4 +33,4 @@ install -m 644 "$source_dir/ghost-status.service" /etc/systemd/system/ghost-stat
 systemctl daemon-reload
 printf 'Installed; no service started/restarted/enabled. Backup: %s\n' "$backup"
 echo 'Next, review config, then explicitly run: systemctl start ghost-status.service'
-echo 'Publish only /status.json through an HTTPS reverse proxy; see STATUS_MONITOR_FA.md.'
+echo 'Publish only /status.json through an HTTPS reverse proxy; see docs/STATUS_MONITOR_FA.md.'
