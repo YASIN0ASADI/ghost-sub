@@ -25,8 +25,8 @@ case "$THEME_CHOICE" in
   '') THEME_NAME='';; 1) THEME_NAME='red';; 2) THEME_NAME='green';; 3) THEME_NAME='blue';;
   *) echo 'Invalid theme; nothing changed'; exit 1;;
 esac
-echo 'Profile image: paste a PNG/WebP path ON THIS SERVER or an HTTPS image URL.'
-echo 'Example: /root/logo.png or https://your-domain.example/logo.png'
+echo 'Profile image: paste a PNG/JPG/WebP path ON THIS SERVER or an HTTPS image URL.'
+echo 'Example: /root/logo.jpg or https://your-domain.example/logo.png'
 echo 'Windows C:\ paths must be uploaded to the server first.'
 echo 'Or choose: 1) Ghost  2) Enter image address  3) No image'
 read -rp 'Image address or choice [Enter: keep saved / default Ghost]: ' LOGO_CHOICE

@@ -47,3 +47,8 @@ Local candidate from the eight uploaded source files. No GitHub push or server i
 - Appearance installation moved to scripts/install_template.sh; menu options invoke it directly without recursively downloading/reopening the manager. No panel is restarted merely by entering the menu.
 - Two subprocess tests PASS: process-substitution command with mock download reaches menu; incomplete archive fails before host installer. Mock Python blocks all host installation. Existing 12 branding tests PASS; shell syntax PASS. Real remote download/system installation still requires a live host test after publication.
 - README restores the branded header/panel badges and original one-line command; test-count section removed at user request.
+
+## Profile-image input and JPEG support
+- Image address can be supplied directly; uploaded server files and HTTPS image URLs supported. Windows paths get an explicit upload explanation. Circle/rounded-square profile frames and saved shape verified.
+- Added bounded JPEG frame/scan header parsing and image/jpeg embedding; real JPEG fixture, malformed/truncated input and retention across reinstallation tested. This validates structure and bounds, not a complete image codec decoder. Existing PNG/WebP support remains.
+- 18 script tests PASS, including two mocked bootstrap checks. No real SSH transfer or production panel install executed here. README documents Windows full-file-path selection, SCP, optional monitor/history prompts and updates.

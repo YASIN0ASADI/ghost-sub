@@ -48,6 +48,32 @@ def image_uri(data):
         if not ended or not has_pixels:
             raise ValueError('Incomplete PNG')
         mime = 'image/png'
+    elif data.startswith(b'\xff\xd8'):
+        # Read bounded JPEG marker segments for dimensions; baseline/progressive supported.
+        size=None;pos=2;scan=False
+        if not data.endswith(b'\xff\xd9'):raise ValueError('Incomplete JPEG')
+        while pos<len(data)-2:
+            if data[pos]!=255:raise ValueError('Invalid JPEG marker')
+            while pos<len(data) and data[pos]==255:pos+=1
+            if pos>=len(data):raise ValueError('Truncated JPEG marker')
+            kind=data[pos];pos+=1
+            if kind in (0,0xd8,0xd9) or 0xd0<=kind<=0xd7:raise ValueError('Invalid JPEG segment')
+            if pos+2>len(data):raise ValueError('Truncated JPEG')
+            length=int.from_bytes(data[pos:pos+2],'big')
+            if length<2 or pos+length>len(data):raise ValueError('Truncated JPEG segment')
+            if kind in (0xc0,0xc1,0xc2):
+                if length<8:raise ValueError('Invalid JPEG frame')
+                height=int.from_bytes(data[pos+3:pos+5],'big')
+                width=int.from_bytes(data[pos+5:pos+7],'big')
+                components=data[pos+7]
+                if components not in (1,3,4) or length!=8+3*components:raise ValueError('Invalid JPEG frame length')
+                size=(width,height)
+            if kind==0xda:
+                if length<6 or pos+length>=len(data)-2:raise ValueError('Invalid JPEG scan')
+                scan=True;break
+            pos+=length
+        if not scan or not size:raise ValueError('Unsupported or incomplete JPEG')
+        mime='image/jpeg'
     elif len(data) >= 30 and data[:4] == b'RIFF' and data[8:12] == b'WEBP':
         if int.from_bytes(data[4:8], 'little') + 8 != len(data):
             raise ValueError('Invalid WebP length')
@@ -63,7 +89,7 @@ def image_uri(data):
             raise ValueError('Unsupported WebP header')
         mime = 'image/webp'
     else:
-        raise ValueError('Only PNG or WebP raster logos are supported')
+        raise ValueError('Only PNG, JPG/JPEG or WebP raster logos are supported')
     if not size or not all(0 < n <= 2048 for n in size):
         raise ValueError('Logo dimensions must be between 1 and 2048 pixels')
     return 'data:' + mime + ';base64,' + base64.b64encode(data).decode('ascii')
@@ -112,7 +138,7 @@ def render(template, brand, theme, mode, logo_source='', previous=None, status_f
         mode = old.get('logo_mode', 'ghost')
         uri = old.get('logo_data', '')
         if mode == 'custom':
-            if not isinstance(uri, str) or not re.fullmatch(r'data:image/(?:png|webp);base64,[A-Za-z0-9+/=]+', uri):
+            if not isinstance(uri, str) or not re.fullmatch(r'data:image/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+', uri):
                 raise ValueError('Invalid saved logo')
             uri = image_uri(base64.b64decode(uri.split(',', 1)[1], validate=True))
     else:
