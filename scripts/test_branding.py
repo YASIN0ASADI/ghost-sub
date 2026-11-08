@@ -85,3 +85,20 @@ class BrandingTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+class ProfileImageTests(unittest.TestCase):
+ def test_circle_square_and_saved_shape(self):
+  with tempfile.TemporaryDirectory() as d:
+   logo=Path(d)/'logo.png';logo.write_bytes(png())
+   previous=Path(d)/'index.html';template=(ROOT/'sub.html').read_text()
+   for shape in ['circle','square']:
+    result,state=render(template,'Brand','red','custom',str(logo),logo_shape=shape)
+    self.assertEqual(state['logo_shape'],shape)
+    self.assertIn('object-fit:cover',result)
+    self.assertIn('border-radius:'+('50%' if shape=='circle' else '20px'),result)
+    previous.write_text(result)
+    _,saved=render(template,'','','keep',previous=previous)
+    self.assertEqual(saved['logo_shape'],shape)
+ def test_windows_path_explains_upload(self):
+  from branding import load_logo
+  with self.assertRaisesRegex(ValueError,'Windows path'):load_logo(r'C:\Users\yasin\logo.png')

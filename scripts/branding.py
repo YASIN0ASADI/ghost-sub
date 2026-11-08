@@ -82,6 +82,12 @@ class HTTPSRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def load_logo(source):
+    source=source.strip().strip('"').strip("'")
+    if re.match(r'^[A-Za-z]:[\\/]',source):
+        raise ValueError('This is a Windows path. Upload the image to this server first, or use an HTTPS image URL.')
+    if not source.startswith('https://') and '://' not in source and not Path(source).expanduser().is_file():
+        raise ValueError('Logo file not found on this server. Use an uploaded server file or an HTTPS image URL.')
+    source=str(Path(source).expanduser()) if '://' not in source else source
     if source.startswith('https://'):
         valid_https(source)
         with urllib.request.build_opener(HTTPSRedirect()).open(source, timeout=15) as response:
@@ -94,7 +100,7 @@ def load_logo(source):
     return image_uri(data)
 
 
-def render(template, brand, theme, mode, logo_source='', previous=None, status_feed=None, usage_base=None):
+def render(template, brand, theme, mode, logo_source='', previous=None, status_feed=None, usage_base=None, logo_shape=None):
     old = settings(previous)
     brand = brand or old.get('brand', '')
     if not isinstance(brand, str) or not 1 <= len(brand) <= 80 or any(ord(c) < 32 for c in brand):
@@ -115,8 +121,11 @@ def render(template, brand, theme, mode, logo_source='', previous=None, status_f
         raise ValueError('Invalid logo mode')
     if template.count(START) != 1 or template.count(END) != 1:
         raise ValueError('This template does not support configurable logos; use the matching release files')
+    logo_shape=logo_shape or old.get('logo_shape','square')
+    if logo_shape not in ('circle','square'):raise ValueError('Invalid logo shape')
     if mode != 'ghost':
-        replacement = '' if mode == 'none' else '<div class="logo-wrap"><div class="logo-ring"></div><div class="logo-inner"><img class="brand-image" alt="Brand logo" src="'+uri+'"></div></div>'
+        radius='50%' if logo_shape=='circle' else '20px'
+        replacement = '' if mode == 'none' else '<div class="logo-wrap"><div class="logo-ring" style="border-radius:'+radius+'"></div><div class="logo-inner" style="border-radius:'+radius+';overflow:hidden"><img class="brand-image" style="width:100%;height:100%;object-fit:cover;border-radius:'+radius+'" alt="Brand logo" src="'+uri+'"></div></div>'
         template = re.sub(re.escape(START)+r'.*?'+re.escape(END), lambda _: START+'\n'+replacement+'\n'+END, template, flags=re.S)
     # Encode < > & quotes and template delimiters before placing branding in
     # HTML/JS text contexts. Decoding remains browser-side, never panel template-side.
@@ -143,7 +152,7 @@ def render(template, brand, theme, mode, logo_source='', previous=None, status_f
     usage_marker='<meta name="ghost-usage-base" content="">'
     if usage_marker not in template:raise ValueError('Missing usage marker')
     template=template.replace(usage_marker,'<meta name="ghost-usage-base" content="'+html.escape(usage_base,quote=True)+'">',1)
-    saved = dict(usage_base=usage_base, status_feed=status_feed, brand=brand, theme=theme, logo_mode=mode, logo_data=uri if mode == 'custom' else '')
+    saved = dict(logo_shape=logo_shape, usage_base=usage_base, status_feed=status_feed, brand=brand, theme=theme, logo_mode=mode, logo_data=uri if mode == 'custom' else '')
     encoded = base64.b64encode(json.dumps(saved, ensure_ascii=False).encode()).decode()
     template = MARKER.sub('', template)
     template = template.replace('</head>', '<!-- GHOST_SETTINGS:'+encoded+' -->\n</head>', 1)
@@ -159,11 +168,12 @@ def main():
     p.add_argument('--theme', default='', choices=['', *THEMES])
     p.add_argument('--logo-mode', default='keep', choices=['keep', 'ghost', 'none', 'custom'])
     p.add_argument('--logo-source', default='')
+    p.add_argument('--logo-shape', choices=['circle','square'])
     p.add_argument('--manifest')
     p.add_argument('--status-feed', default=None)
     p.add_argument('--usage-base', default=None)
     args = p.parse_args()
-    result, state = render(Path(args.template).read_text(), args.brand, args.theme, args.logo_mode, args.logo_source, args.previous, args.status_feed, args.usage_base)
+    result, state = render(Path(args.template).read_text(), args.brand, args.theme, args.logo_mode, args.logo_source, args.previous, args.status_feed, args.usage_base, args.logo_shape)
     Path(args.output).write_text(result)
     if args.manifest:
         manifest = {'name':state['brand'], 'short_name':state['brand'][:24], 'start_url':'./', 'display':'standalone', 'background_color':'#09080c', 'theme_color':{'red':'#ff4151','green':'#22d39a','blue':'#55b1ff'}[state['theme']]}

@@ -25,14 +25,27 @@ case "$THEME_CHOICE" in
   '') THEME_NAME='';; 1) THEME_NAME='red';; 2) THEME_NAME='green';; 3) THEME_NAME='blue';;
   *) echo 'Invalid theme; nothing changed'; exit 1;;
 esac
-echo 'Header logo: 1) Ghost  2) Your logo (PNG/WebP)  3) No logo'
-read -rp 'Logo [1/2/3; Enter: keep saved or Ghost]: ' LOGO_CHOICE
+echo 'Profile image: paste a PNG/WebP path ON THIS SERVER or an HTTPS image URL.'
+echo 'Example: /root/logo.png or https://your-domain.example/logo.png'
+echo 'Windows C:\ paths must be uploaded to the server first.'
+echo 'Or choose: 1) Ghost  2) Enter image address  3) No image'
+read -rp 'Image address or choice [Enter: keep saved / default Ghost]: ' LOGO_CHOICE
 LOGO_SOURCE=''
+SHAPE_ARGS=()
 case "$LOGO_CHOICE" in
-  '') LOGO_MODE='keep';; 1) LOGO_MODE='ghost';; 3) LOGO_MODE='none';;
-  2) LOGO_MODE='custom'; read -rp 'Local path or HTTPS logo URL (max 256 KiB / 2048 px): ' LOGO_SOURCE;;
-  *) echo 'Invalid logo choice; nothing changed'; exit 1;;
+  '') LOGO_MODE='keep';; 1|ghost) LOGO_MODE='ghost';; 3|none) LOGO_MODE='none';;
+  2) LOGO_MODE='custom'; read -rp 'Image path on server or HTTPS URL: ' LOGO_SOURCE;;
+  *) LOGO_MODE='custom'; LOGO_SOURCE="$LOGO_CHOICE";;
 esac
+if [[ "$LOGO_MODE" == custom ]]; then
+ read -rp 'Profile frame: 1) Round  2) Rounded square [default 1]: ' LOGO_SHAPE
+ case "$LOGO_SHAPE" in
+  ''|1) SHAPE_ARGS=(--logo-shape circle);;
+  2) SHAPE_ARGS=(--logo-shape square);;
+  *) echo 'Invalid frame choice; nothing changed'; exit 1;;
+ esac
+fi
+echo 'Next section is SERVER MONITORING, not an image address.'
 echo 'Optional measured server status: enter the public JSON feed path/HTTPS URL.'
 echo 'Enter keeps saved settings; type off to disable. No feed means Unknown.'
 read -rp 'Status feed [e.g. /ghost-status.json]: ' STATUS_FEED
@@ -62,7 +75,7 @@ get_source scripts/branding.py "$TMP_WORK/branding.py"
 python3 -I "$TMP_WORK/branding.py" --template "$TMP_WORK/template.html" \
   --output "$TMP_WORK/index.html" --previous "$OUTPUT_FILE" \
   --brand "$BRAND_NAME" --theme "$THEME_NAME" --logo-mode "$LOGO_MODE" \
-  --logo-source "$LOGO_SOURCE" --manifest "$TMP_WORK/manifest.json" "${STATUS_ARGS[@]}" "${USAGE_ARGS[@]}"
+  --logo-source "$LOGO_SOURCE" --manifest "$TMP_WORK/manifest.json" "${STATUS_ARGS[@]}" "${USAGE_ARGS[@]}" "${SHAPE_ARGS[@]}"
 # Preparation above does not overwrite existing template or panel settings.
 [[ ! -L "$INSTALL_DIR" && ! -L "$OUTPUT_FILE" && ! -L "$INSTALL_DIR/manifest.json" ]] || { echo 'Refusing symlink destination'; exit 1; }
 mkdir -p -- "$INSTALL_DIR"
