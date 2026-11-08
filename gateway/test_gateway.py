@@ -32,7 +32,8 @@ class GatewayTests(unittest.TestCase):
    except OSError:self.skipTest('Local monitor port occupied')
    servers.append(monitor)
    backend=http.server.ThreadingHTTPServer(('127.0.0.1',0),Backend);servers.append(backend)
-   gateway=m.Server(('127.0.0.1',0),m.handler({'upstream_port':backend.server_port,'path_prefix':'/sub/'}));servers.append(gateway)
+   cfg={'upstream_port':backend.server_port,'path_prefix':'/sub/'}
+   gateway=m.Server(('127.0.0.1',0),m.handler(cfg));servers.append(gateway)
    for server in servers:
     t=threading.Thread(target=server.serve_forever,daemon=True);t.start();threads.append(t)
    opener=urllib.request.build_opener(urllib.request.ProxyHandler({}));base='http://127.0.0.1:'+str(gateway.server_port)
@@ -43,6 +44,13 @@ class GatewayTests(unittest.TestCase):
    for path in ['/admin','/sub/../admin','/sub/redirect']:
     with self.assertRaises(urllib.error.HTTPError) as ctx:opener.open(base+path)
     self.assertIn(ctx.exception.code,[404,502])
+   cfg.update(status_only=True,allowed_origin='http://original.example:2096')
+   with opener.open(urllib.request.Request(base+'/ghost-status.json',headers={'Origin':'http://original.example:2096'})) as r:
+    self.assertEqual(r.headers['Access-Control-Allow-Origin'],'http://original.example:2096')
+    self.assertEqual(json.loads(r.read())['schema'],1)
+   with opener.open(urllib.request.Request(base+'/ghost-status.json',headers={'Origin':'http://other.example:2096'})) as r:self.assertIsNone(r.headers.get('Access-Control-Allow-Origin'))
+   with self.assertRaises(urllib.error.HTTPError) as ctx:opener.open(base+'/sub/private')
+   self.assertEqual(ctx.exception.code,404)
   finally:
    for server in servers:server.shutdown();server.server_close()
    for t in threads:t.join()

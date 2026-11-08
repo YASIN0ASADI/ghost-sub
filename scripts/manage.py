@@ -108,49 +108,84 @@ def status_setup():
                 if os.path.exists(tmp):os.unlink(tmp)
     else:raise ValueError('Invalid mode')
     if candidate is None and run(['bash',ROOT/'status-monitor/install.sh',config]):return
-    print('Monitor targets configured. A domain-free subscription entrance can connect the chart automatically.')
+    print('Monitor targets configured. The chart can be attached to the original HTTP subscription link.')
     if confirm('Start/restart only ghost-status.service now?'):run(['systemctl','restart','ghost-status.service','ghost-gateway.service'])
     if confirm('Enable ghost-status.service at boot?'):run(['systemctl','enable','ghost-status.service','ghost-gateway.service'])
-    if confirm('Connect the chart using an IP:port entrance now?'):gateway_setup()
+    if confirm('Connect the chart to the ORIGINAL subscription link now?'):gateway_setup()
 
 def gateway_setup():
-    import getpass,socket,urllib.parse
-    source=''
-    monitor=Path('/etc/ghost-status/config.json')
+    import getpass,socket,urllib.parse,urllib.request
+    source='';monitor=Path('/etc/ghost-status/config.json')
     if monitor.is_file():source=json.loads(monitor.read_text()).get('subscription_source','')
-    if not source:source=getpass.getpass('Existing full subscription URL (hidden): ').strip()
-    importer=module(ROOT/'status-monitor/subscription.py','subscription')
-    url=importer.validate_url(source)
-    port=int(input('New public subscription port [18090]: ').strip() or '18090')
-    upstream=int(input('LOCAL HTTP subscription port ['+str(url.port or 2096)+']: ').strip() or str(url.port or 2096))
-    host=input('Public server IP ['+url.hostname+']: ').strip() or url.hostname
-    import re
-    if not re.fullmatch(r'[A-Za-z0-9.\-]+',host):raise ValueError('Invalid public IPv4/DNS host')
-    prefix=url.path.rsplit('/',1)[0]+'/'
-    candidate={'listen_port':port,'upstream_port':upstream,'path_prefix':prefix}
-    gateway=module(ROOT/'gateway/server.py','gateway')
-    destination=Path('/etc/ghost-gateway/config.json')
-    existing={}
+    if not source:source=getpass.getpass('ORIGINAL subscription URL (hidden): ').strip()
+    importer=module(ROOT/'status-monitor/subscription.py','subscription');url=importer.validate_url(source)
+    destination=Path('/etc/ghost-gateway/config.json');existing={}
     if destination.is_file():existing=json.loads(destination.read_text())
+    # Migrate a previously pasted gateway URL back to its original subscription origin.
+    if not existing.get('status_only') and url.port==existing.get('listen_port') and existing.get('upstream_port'):
+        url=url._replace(netloc=url.hostname+':'+str(existing['upstream_port']))
+    if existing.get('status_only') and url.port==existing.get('listen_port') and existing.get('allowed_origin'):
+        url=url._replace(netloc=urllib.parse.urlsplit(existing['allowed_origin']).netloc)
+    if url.scheme!='http':
+        print('Same-link port attachment currently supports HTTP subscription pages. HTTPS pages need an HTTPS monitor route; no settings changed.');return
+    key,(name,folder)=panel();template=folder/'index.html'
+    if template.is_symlink() or not template.is_file():print('Install the current Ghost Sub template for this panel first.');return
+    port=int(input('Monitor data port ['+str(existing.get('listen_port',18090))+']: ').strip() or str(existing.get('listen_port',18090)))
+    original_port=url.port or 80
+    if port==original_port:print('Monitor port must differ from the unchanged original subscription port.');return
+    attach=module(ROOT/'scripts/status_attach.py','status_attach')
+    original=template.read_text();updated=attach.prepare(original,port)
+    authority=url.hostname if original_port==80 else url.hostname+':'+str(original_port)
+    origin=urllib.parse.urlunsplit(('http',authority,'','',''))
+    candidate={'listen_port':port,'upstream_port':original_port,'path_prefix':'/sub/','status_only':True,'allowed_origin':origin}
+    gateway=module(ROOT/'gateway/server.py','gateway')
     active=subprocess.run(['systemctl','is-active','--quiet','ghost-gateway.service'],capture_output=True).returncode==0
     with tempfile.TemporaryDirectory() as d:
         file=Path(d)/'config.json';file.write_text(json.dumps(candidate));gateway.config(file)
         if not (active and existing.get('listen_port')==port):
             try:
                 with socket.socket() as listener:listener.bind(('0.0.0.0',port))
-            except OSError:print('Public port already in use; choose another port. Nothing changed.');return
-        print('This adds an HTTP subscription entrance on port '+str(port)+'. No domain or Apache/Nginx changes.')
-        print('Existing subscription port and mini-app stay in place. Subscription links are private; HTTP is unencrypted.')
-        if not confirm('Install, start/restart and enable this gateway at boot?'):return
+            except OSError:print('Monitor port already in use; choose another port. Nothing changed.');return
+        print('Attach chart to the ORIGINAL '+name+' subscription. Original URL, port and token are retained.')
+        print('Only the installed template and monitor data service change; no database/Apache/Nginx changes.')
+        print('The old separate gateway page is disabled. The selected panel will restart briefly.')
+        if not confirm('Save backup, connect monitor and restart selected panel?'):return
+        backup=Path(tempfile.mkdtemp(prefix='ghost-sub-backup.',dir='/root'));os.chmod(backup,0o700)
+        shutil.copy2(template,backup/'index.html')
+        (backup/'panel.json').write_text(json.dumps({'panel':key,'destination':str(template)}))
+        if (folder/'manifest.json').is_file():shutil.copy2(folder/'manifest.json',backup/'manifest.json')
+        old_config=destination.read_bytes() if destination.is_file() else None
+        if old_config:(backup/'gateway-config.json').write_bytes(old_config)
         if run(['bash',ROOT/'gateway/install.sh',file]):return
-    if run(['systemctl','restart','ghost-gateway.service']):return
-    if run(['systemctl','enable','ghost-gateway.service']):return
-    public=urllib.parse.urlunsplit(('http',host+':'+str(port),url.path,url.query,''))
-    print('Use this NEW subscription link in the browser/apps (do not post it publicly):')
-    print(public)
-    print('Status feed is injected automatically on this entrance; no Status feed field needed.')
-    print('If external access is blocked, allow only TCP '+str(port)+' in your existing firewall/provider rules.')
-    print('The old subscription URL still works but does not use this gateway.')
+    try:
+        if run(['systemctl','restart','ghost-gateway.service']):raise ValueError('Monitor restart failed')
+        import time
+        ready=False
+        for attempt in range(12):
+            try:
+                with urllib.request.build_opener(urllib.request.ProxyHandler({})).open('http://127.0.0.1:'+str(port)+'/ghost-status.json',timeout=2) as response:
+                    feed=json.loads(response.read(100001))
+                    ready=feed.get('schema')==1 and isinstance(feed.get('nodes'),dict)
+                if ready:break
+            except Exception:pass
+            time.sleep(.25)
+        if not ready:raise ValueError('Monitor feed unavailable')
+        attach.write(template,updated)
+        if key=='1':restart=['systemctl','restart','x-ui.service']
+        elif key=='2':restart=['pasarguard','restart']
+        elif subprocess.run(['systemctl','is-active','--quiet','marzban'],capture_output=True).returncode==0:restart=['systemctl','restart','marzban']
+        else:restart=['marzban','restart']
+        if run(restart):raise ValueError('Panel restart failed')
+        if run(['systemctl','enable','ghost-gateway.service']):raise ValueError('Monitor boot enable failed')
+    except Exception:
+        attach.write(template,original)
+        if old_config:destination.write_bytes(old_config);os.chmod(destination,0o640)
+        if active:run(['systemctl','restart','ghost-gateway.service'])
+        else:run(['systemctl','stop','ghost-gateway.service'])
+        if 'restart' in locals():run(restart)
+        print('Setup failed; template restored. Private backup: '+str(backup));return
+    print('Connected. Open your ORIGINAL subscription URL, then refresh without cache. No new subscription link is needed.')
+    print('If needed, allow TCP '+str(port)+' through the existing firewall for monitor JSON only. Backup: '+str(backup))
 
 def rollback():
     key,(name,folder)=panel();choices=[]
@@ -180,7 +215,7 @@ def rollback():
 
 def main():
     while True:
-        print('\nGhost Sub Manager\n1) Install/apply bundled template version\n2) Change brand/logo/default theme (installer)\n3) Configure 3X-UI usage history\n4) Configure server reachability monitor\n5) Read-only installation checks\n6) Restore matching template backup\n7) Connect chart without a domain (IP:port)\n0) Exit')
+        print('\nGhost Sub Manager\n1) Install/apply bundled template version\n2) Change brand/logo/default theme (installer)\n3) Configure 3X-UI usage history\n4) Configure server reachability monitor\n5) Read-only installation checks\n6) Restore matching template backup\n7) Attach chart to ORIGINAL subscription (keep URL)\n0) Exit')
         try:
             choice=input('Select: ').strip()
             if choice=='0':return

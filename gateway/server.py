@@ -13,6 +13,9 @@ def config(path):
  if c['listen_port'] in (c['upstream_port'],19191):raise ValueError('Gateway needs its own unused port')
  prefix=c.get('path_prefix','')
  if not re.fullmatch(r'/[A-Za-z0-9_/-]+/',prefix) or '..' in prefix or '//' in prefix:raise ValueError('Use the subscription path prefix, e.g. /sub/')
+ if c.get('status_only'):
+  origin=urllib.parse.urlsplit(c.get('allowed_origin',''))
+  if origin.scheme!='http' or not origin.hostname or origin.path or origin.query or origin.fragment or origin.username or origin.password:raise ValueError('Expected exact HTTP subscription origin')
  return c
 
 def patch_html(body):
@@ -34,7 +37,7 @@ def handler(c):
    if parsed.scheme or parsed.netloc or '..' in path.split('/') or '\\' in path or '//' in path:
     self.reply(404,b'Not found');return
    monitor=path=='/ghost-status.json'
-   if not monitor and not path.startswith(c['path_prefix']):self.reply(404,b'Not found');return
+   if not monitor and (c.get('status_only') or not path.startswith(c['path_prefix'])):self.reply(404,b'Not found');return
    if monitor:
     url='http://127.0.0.1:19191/status.json';headers={}
    else:
@@ -52,6 +55,9 @@ def handler(c):
      data=json.loads(body)
      if data.get('schema')!=1 or not isinstance(data.get('nodes'),dict):raise ValueError('Invalid monitor feed')
      kind='application/json; charset=utf-8'
+     extra=[]
+     if c.get('allowed_origin') and self.headers.get('Origin')==c['allowed_origin']:
+      extra=[('Access-Control-Allow-Origin',c['allowed_origin']),('Vary','Origin')]
     elif 'text/html' in kind:
      body=patch_html(body);kind='text/html; charset=utf-8'
     self.reply(200,body,kind,extra)

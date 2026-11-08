@@ -14,7 +14,7 @@ curl --fail --silent --show-error --location --retry 2 \
   -o "$stage/source.tar.gz"
 python3 -I - "$stage/source.tar.gz" "$stage/source" <<'PYBOOT'
 import pathlib,sys,tarfile
-files=['install.sh', 'scripts/install_template.sh', 'sub.html', 'marzban.html', 'pasarguard.html', 'manifest.json', 'scripts/branding.py', 'scripts/manage.py', 'scripts/install_manager.py', 'tracker/tracker.py', 'tracker/ghost-tracker.service', 'traffic-history/history.py', 'traffic-history/install.sh', 'traffic-history/ghost-history.service', 'status-monitor/monitor.py','status-monitor/subscription.py', 'status-monitor/install.sh', 'status-monitor/ghost-status.service','gateway/server.py','gateway/install.sh','gateway/ghost-gateway.service']
+files=['install.sh', 'scripts/install_template.sh','scripts/status_attach.py','scripts/status_ui.js', 'sub.html', 'marzban.html', 'pasarguard.html', 'manifest.json', 'scripts/branding.py', 'scripts/manage.py', 'scripts/install_manager.py', 'tracker/tracker.py', 'tracker/ghost-tracker.service', 'traffic-history/history.py', 'traffic-history/install.sh', 'traffic-history/ghost-history.service', 'status-monitor/monitor.py','status-monitor/subscription.py', 'status-monitor/install.sh', 'status-monitor/ghost-status.service','gateway/server.py','gateway/install.sh','gateway/ghost-gateway.service']
 base=pathlib.Path(sys.argv[2]);base.mkdir(mode=0o700)
 with tarfile.open(sys.argv[1],'r:gz') as archive:
     pending=[]

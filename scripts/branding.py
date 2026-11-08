@@ -126,7 +126,7 @@ def load_logo(source):
     return image_uri(data)
 
 
-def render(template, brand, theme, mode, logo_source='', previous=None, status_feed=None, usage_base=None, logo_shape=None):
+def render(template, brand, theme, mode, logo_source='', previous=None, status_feed=None, usage_base=None, logo_shape=None, status_port=None):
     old = settings(previous)
     brand = brand or old.get('brand', '')
     if not isinstance(brand, str) or not 1 <= len(brand) <= 80 or any(ord(c) < 32 for c in brand):
@@ -178,7 +178,12 @@ def render(template, brand, theme, mode, logo_source='', previous=None, status_f
     usage_marker='<meta name="ghost-usage-base" content="">'
     if usage_marker not in template:raise ValueError('Missing usage marker')
     template=template.replace(usage_marker,'<meta name="ghost-usage-base" content="'+html.escape(usage_base,quote=True)+'">',1)
-    saved = dict(logo_shape=logo_shape, usage_base=usage_base, status_feed=status_feed, brand=brand, theme=theme, logo_mode=mode, logo_data=uri if mode == 'custom' else '')
+    status_port=old.get('status_port',0) if status_port is None else status_port
+    if not isinstance(status_port,int) or isinstance(status_port,bool) or (status_port!=0 and not 1024<=status_port<=65535):raise ValueError('Invalid monitor port')
+    port_marker='<meta name="ghost-status-port" content="">'
+    if port_marker not in template:raise ValueError('Missing monitor port marker')
+    template=template.replace(port_marker,'<meta name="ghost-status-port" content="'+(str(status_port) if status_port else '')+'">',1)
+    saved = dict(status_port=status_port, logo_shape=logo_shape, usage_base=usage_base, status_feed=status_feed, brand=brand, theme=theme, logo_mode=mode, logo_data=uri if mode == 'custom' else '')
     encoded = base64.b64encode(json.dumps(saved, ensure_ascii=False).encode()).decode()
     template = MARKER.sub('', template)
     template = template.replace('</head>', '<!-- GHOST_SETTINGS:'+encoded+' -->\n</head>', 1)

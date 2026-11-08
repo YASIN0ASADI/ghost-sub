@@ -793,6 +793,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--red2);outl
 
 </style>
 <meta name="ghost-status-feed" content="">
+<meta name="ghost-status-port" content="">
 <meta name="ghost-usage-base" content="">
 </head>
 <body>
@@ -1199,12 +1200,16 @@ function attachNodeStatus(row,link,name){
  GhostNodes.key(link).then(k=>{if(k){row.dataset.nodeKey=k;updateNodeRow(row);}}).catch(()=>{});
 }
 async function refreshGhostStatus(){
- const url=document.querySelector('meta[name=ghost-status-feed]')?.content;
+ const monitorPort=Number(document.querySelector('meta[name=ghost-status-port]')?.content||0);
+ const localMonitor=location.protocol==='http:'&&Number.isInteger(monitorPort)&&monitorPort>=1024&&monitorPort<=65535;
+ const autoTarget=localMonitor?new URL('/ghost-status.json',location.href):null;
+ if(autoTarget)autoTarget.port=String(monitorPort);
+ const url=autoTarget?.href||document.querySelector('meta[name=ghost-status-feed]')?.content;
  if(url){
   const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),6000);
   try{
    const target=new URL(url,location.href);
-   if(target.protocol!=='https:'&&target.origin!==location.origin)throw Error('Feed requires HTTPS');
+   if(target.protocol!=='https:'&&target.origin!==location.origin&&!(localMonitor&&target.protocol==='http:'&&target.hostname===location.hostname&&target.port===String(monitorPort)))throw Error('Feed requires HTTPS');
    const response=await fetch(target.href,{credentials:'omit',cache:'no-store',signal:controller.signal});
    if(!response.ok)throw Error('Unavailable status');
    const text=await response.text();if(text.length>100000)throw Error('Oversized status');
