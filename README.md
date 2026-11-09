@@ -142,10 +142,9 @@ ghost-sub
 
 ### روش اول: مسیر کامل فایل
 
-برای دیدن نام عکس‌های پوشهٔ Telegram Desktop:
-
+برای دیدن نام عکس‌های پوشه:
 ```powershell
-Get-ChildItem "$env:USERPROFILE\Downloads\Telegram Desktop" -File |
+Get-ChildItem "$env:USERPROFILE\Downloads\" -File |
     Where-Object { $_.Extension -in '.jpg','.jpeg','.png','.webp' } |
     Select-Object Name, Length
 ```
@@ -153,17 +152,16 @@ Get-ChildItem "$env:USERPROFILE\Downloads\Telegram Desktop" -File |
 نام کامل فایل را جای `photo.jpg` بگذارید:
 
 ```powershell
-scp "$env:USERPROFILE\Downloads\Telegram Desktop\photo.jpg" root@SERVER_IP:/root/ghost-profile.jpg
+scp "$env:USERPROFILE\Downloads\photo.jpg" root@SERVER_IP:/root/ghost-profile.jpg
 ```
 
 برای پورت SSH متفاوت:
 
 ```powershell
-scp -P 2222 "$env:USERPROFILE\Downloads\Telegram Desktop\photo.jpg" root@SERVER_IP:/root/ghost-profile.jpg
+scp -P 2222 "$env:USERPROFILE\Downloads\photo.jpg" root@SERVER_IP:/root/ghost-profile.jpg
 ```
 
-در SCP گزینهٔ پورت **`-P` بزرگ** است؛ در SSH، **`-p` کوچک**. گیومه‌ها را برای مسیر دارای فاصله نگه دارید. مسیر باید به خود فایل برسد؛ فقط نام پوشهٔ `Telegram Desktop` کافی نیست.
-
+در SCP گزینهٔ پورت **`-P` بزرگ** است؛ در SSH، **`-p` کوچک**. گیومه‌ها را برای مسیر دارای فاصله نگه دارید. مسیر باید به خود فایل برسد؛
 اگر تصویر PNG یا WebP است، پسوند مبدأ و مقصد را هم مطابق فرمت واقعی انتخاب کنید.
 
 ### روش دوم: پنجرهٔ انتخاب عکس
