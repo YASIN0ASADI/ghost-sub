@@ -795,6 +795,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--red2);outl
 <meta name="ghost-status-feed" content="">
 <meta name="ghost-status-port" content="">
 <meta name="ghost-usage-base" content="">
+<meta name="ghost-usage-port" content="">
 </head>
 <body>
 <canvas id="particle-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.35;"></canvas>
@@ -1866,7 +1867,9 @@ let _chartPoints = null; // [{t: ms, used: bytes}, ...]
 
 let ghostUsageCache=null;
 async function loadUsageChart(){
- const card=document.getElementById('chart-card'),base=document.querySelector('meta[name=ghost-usage-base]')?.content;
+ const dataPort=Number(document.querySelector('meta[name=ghost-usage-port]')?.content||0);
+ const autoUsage=location.protocol==='http:'&&Number.isInteger(dataPort)&&dataPort>=1024&&dataPort<=65535;
+ const card=document.getElementById('chart-card'),base=autoUsage?'/ghost-usage/':document.querySelector('meta[name=ghost-usage-base]')?.content;
  if(!card||!base){if(card)card.style.display='none';return;}
  card.style.display='';
  const labels={'l-chart':lang==='fa'?'تاریخچهٔ مصرف ثبت‌شده':'Recorded usage history','chart-tab-day':T[lang].chartDay,'chart-tab-week':T[lang].chartWeek,'chart-tab-week2':T[lang].chartWeek2,'chart-tab-week3':T[lang].chartWeek3,'chart-tab-month':T[lang].chartMonth};
@@ -1875,7 +1878,8 @@ async function loadUsageChart(){
  _chartPoints=[];
  try{
   const root=new URL(base,location.href);
-  if(root.origin!==location.origin)throw Error('Usage history must stay on the subscription origin');
+  if(autoUsage)root.port=String(dataPort);
+  if(root.origin!==location.origin&&!(autoUsage&&root.protocol==='http:'&&root.hostname===location.hostname&&root.port===String(dataPort)))throw Error('Usage history must stay on the subscription server');
   const token=decodeURIComponent(new URL(RAW.subUrl,location.href).pathname.replace(/\/$/,'').split('/').pop());
   if(!/^[A-Za-z0-9_-]{8,128}$/.test(token))throw Error('Unrecognized subscription token');
   let data=ghostUsageCache&&Date.now()-ghostUsageCache.at<60000?ghostUsageCache.data:null;

@@ -28,3 +28,22 @@ def write(path,text):
   os.chmod(tmp,stat.S_IMODE(info.st_mode));os.chown(tmp,info.st_uid,info.st_gid);os.replace(tmp,path)
  finally:
   if os.path.exists(tmp):os.unlink(tmp)
+
+
+def prepare_usage(text,port):
+ if not isinstance(port,int) or not 1024<=port<=65535:raise ValueError('Invalid usage port')
+ marker=re.compile(r'<!-- GHOST_SETTINGS:([A-Za-z0-9+/=]+) -->')
+ found=marker.search(text)
+ if not found or 'id="chart-card"' not in text:raise ValueError('Install the current 3X-UI Ghost template first')
+ settings=json.loads(base64.b64decode(found[1],validate=True));settings['usage_port']=port
+ encoded=base64.b64encode(json.dumps(settings,ensure_ascii=False).encode()).decode()
+ text=marker.sub(lambda m:'<!-- GHOST_SETTINGS:'+encoded+' -->',text)
+ canonical=(ROOT/'sub.html').read_text()
+ a=canonical.index('let ghostUsageCache=null;');b=canonical.index('function renderChart()',a)
+ olda=text.index('let ghostUsageCache=null;');oldb=text.index('function renderChart()',olda)
+ text=text[:olda]+canonical[a:b]+text[oldb:]
+ port_meta='<meta name="ghost-usage-port" content="'+str(port)+'">'
+ if re.search(r'<meta name="ghost-usage-port" content="[^"]*">',text):
+  text=re.sub(r'<meta name="ghost-usage-port" content="[^"]*">',lambda m:port_meta,text,count=1)
+ else:text=text.replace('</head>',port_meta+'\n</head>',1)
+ return text

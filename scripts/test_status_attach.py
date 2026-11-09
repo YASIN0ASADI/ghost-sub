@@ -24,3 +24,15 @@ class AttachTests(unittest.TestCase):
    with self.assertRaises(ValueError):prepare('<html></html>',port)
   with self.assertRaises(ValueError):prepare('<html>old template</html>',18090)
 if __name__=='__main__':unittest.main()
+
+class UsageAttachTests(unittest.TestCase):
+ def test_usage_attachment_preserves_profile_status_and_future_updates(self):
+  from status_attach import prepare_usage
+  raw=(ROOT/'sub.html').read_text();text,_=render(raw,'Private Brand','blue','ghost')
+  text=prepare(text,18090);text=prepare_usage(text,18090)
+  self.assertIn('name="ghost-usage-port" content="18090"',text)
+  self.assertEqual(re.findall(r'\{\{.*?\}\}|\{%.*?%\}',raw,re.S),re.findall(r'\{\{.*?\}\}|\{%.*?%\}',text,re.S))
+  with tempfile.TemporaryDirectory() as d:
+   p=pathlib.Path(d)/'index.html';p.write_text(text)
+   _,saved=render(raw,'','','keep',previous=p)
+   self.assertEqual(saved['brand'],'Private Brand');self.assertEqual(saved['status_port'],18090);self.assertEqual(saved['usage_port'],18090)

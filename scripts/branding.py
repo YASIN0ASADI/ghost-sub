@@ -162,6 +162,7 @@ def render(template, brand, theme, mode, logo_source='', previous=None, status_f
     template, count = re.subn(r'^let themeIndex = [0-2];', 'let themeIndex = '+str(THEMES[theme])+';', template, flags=re.M)
     if count != 1:
         raise ValueError('Expected one initial theme setting')
+    explicit_feed=status_feed is not None
     status_feed = old.get('status_feed', '') if status_feed is None else status_feed
     if status_feed:
         if any(ord(c) < 32 for c in status_feed) or len(status_feed)>2048:
@@ -172,18 +173,24 @@ def render(template, brand, theme, mode, logo_source='', previous=None, status_f
     if marker not in template:
         raise ValueError('Expected status feed marker')
     template = template.replace(marker, '<meta name="ghost-status-feed" content="'+html.escape(status_feed,quote=True)+'">', 1)
+    explicit_usage=usage_base is not None
     usage_base=old.get('usage_base','') if usage_base is None else usage_base
     if usage_base and (not re.fullmatch(r'/[A-Za-z0-9_/-]+',usage_base) or usage_base.startswith('//')):
         raise ValueError('Usage path must be a same-origin root-relative path, e.g. /ghost-usage/')
     usage_marker='<meta name="ghost-usage-base" content="">'
     if usage_marker not in template:raise ValueError('Missing usage marker')
     template=template.replace(usage_marker,'<meta name="ghost-usage-base" content="'+html.escape(usage_base,quote=True)+'">',1)
-    status_port=old.get('status_port',0) if status_port is None else status_port
+    status_port=(0 if explicit_feed else old.get('status_port',0)) if status_port is None else status_port
     if not isinstance(status_port,int) or isinstance(status_port,bool) or (status_port!=0 and not 1024<=status_port<=65535):raise ValueError('Invalid monitor port')
     port_marker='<meta name="ghost-status-port" content="">'
     if port_marker not in template:raise ValueError('Missing monitor port marker')
     template=template.replace(port_marker,'<meta name="ghost-status-port" content="'+(str(status_port) if status_port else '')+'">',1)
-    saved = dict(status_port=status_port, logo_shape=logo_shape, usage_base=usage_base, status_feed=status_feed, brand=brand, theme=theme, logo_mode=mode, logo_data=uri if mode == 'custom' else '')
+    usage_port=0 if explicit_usage else old.get('usage_port',0)
+    if not isinstance(usage_port,int) or isinstance(usage_port,bool) or (usage_port!=0 and not 1024<=usage_port<=65535):raise ValueError('Invalid usage port')
+    usage_port_marker='<meta name="ghost-usage-port" content="">'
+    if usage_port_marker not in template:raise ValueError('Missing usage port marker')
+    template=template.replace(usage_port_marker,'<meta name="ghost-usage-port" content="'+(str(usage_port) if usage_port else '')+'">',1)
+    saved = dict(usage_port=usage_port, status_port=status_port, logo_shape=logo_shape, usage_base=usage_base, status_feed=status_feed, brand=brand, theme=theme, logo_mode=mode, logo_data=uri if mode == 'custom' else '')
     encoded = base64.b64encode(json.dumps(saved, ensure_ascii=False).encode()).decode()
     template = MARKER.sub('', template)
     template = template.replace('</head>', '<!-- GHOST_SETTINGS:'+encoded+' -->\n</head>', 1)

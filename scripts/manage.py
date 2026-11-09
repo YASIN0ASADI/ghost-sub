@@ -61,9 +61,75 @@ def history_setup():
     if run(['bash',ROOT/'traffic-history/install.sh',config]):return
     import grp
     os.chown(config,0,grp.getgrnam('ghost-history').gr_gid);os.chmod(config,0o640)
-    print('Next: configure the same-origin /ghost-usage/ proxy route and select it in template appearance setup.')
+    print('After collection starts, option 8 connects history to the original subscription page.')
     if confirm('Start/restart only ghost-history.service now?'):run(['systemctl','restart','ghost-history.service'])
     if confirm('Enable ghost-history.service at boot?'):run(['systemctl','enable','ghost-history.service'])
+    if confirm('Connect usage history to the original subscription page now?'):usage_attach()
+
+def usage_attach():
+    import getpass,socket,time,urllib.parse,urllib.request,urllib.error
+    template=PANELS['1'][1]/'index.html'
+    if template.is_symlink() or not template.is_file():print('Install the current 3X-UI Ghost template first.');return
+    if subprocess.run(['systemctl','is-active','--quiet','ghost-history.service'],capture_output=True).returncode:
+        print('Start the collector through option 3 first.');return
+    destination=Path('/etc/ghost-gateway/config.json')
+    candidate=json.loads(destination.read_text()) if destination.is_file() else {}
+    if candidate and not candidate.get('status_only'):
+        print('Use option 7 to attach the original subscription first, then retry option 8.');return
+    if not candidate:
+        source=getpass.getpass('ORIGINAL subscription URL (hidden): ').strip()
+        u=module(ROOT/'status-monitor/subscription.py','subscription').validate_url(source)
+        if u.scheme!='http':print('Original HTTPS pages require an HTTPS history route; no settings changed.');return
+        port=int(input('Private-history data port [18090]: ').strip() or '18090')
+        public_port=u.port or 80
+        if port==public_port:raise ValueError('Choose a separate data port')
+        authority=u.hostname if public_port==80 else u.hostname+':'+str(public_port)
+        candidate={'listen_port':port,'upstream_port':public_port,'path_prefix':'/sub/','status_only':True,'allowed_origin':'http://'+authority}
+        try:
+            with socket.socket() as listener:listener.bind(('0.0.0.0',port))
+        except OSError:print('Data port already occupied; nothing changed.');return
+    candidate['history_enabled']=True;port=candidate['listen_port']
+    m=module(ROOT/'scripts/status_attach.py','status_attach');original=template.read_text();updated=m.prepare_usage(original,port)
+    gateway=module(ROOT/'gateway/server.py','gateway')
+    with tempfile.TemporaryDirectory() as d:
+        file=Path(d)/'config.json';file.write_text(json.dumps(candidate));gateway.config(file)
+        print('Connect PRIVATE per-subscription usage history to the ORIGINAL 3X-UI subscription page.')
+        print('The original URL/token, logo, reachability chart and panel credentials are preserved. 3X-UI restarts briefly.')
+        if not confirm('Back up, connect usage chart and restart 3X-UI?'):return
+        backup=Path(tempfile.mkdtemp(prefix='ghost-sub-backup.',dir='/root'));os.chmod(backup,0o700)
+        shutil.copy2(template,backup/'index.html')
+        if (template.parent/'manifest.json').is_file():shutil.copy2(template.parent/'manifest.json',backup/'manifest.json')
+        (backup/'panel.json').write_text(json.dumps({'panel':'1','destination':str(template)}))
+        old=destination.read_bytes() if destination.is_file() else None
+        if old:(backup/'gateway-config.json').write_bytes(old)
+        active=subprocess.run(['systemctl','is-active','--quiet','ghost-gateway.service'],capture_output=True).returncode==0
+        if run(['bash',ROOT/'gateway/install.sh',file]):return
+    changed=False
+    try:
+        if run(['systemctl','restart','ghost-gateway.service']):raise ValueError('Data service restart failed')
+        ready=False
+        for attempt in range(12):
+            try:
+                opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
+                with opener.open('http://127.0.0.1:'+str(port)+'/ghost-usage/aaaaaaaaaaaa',timeout=2):pass
+            except urllib.error.HTTPError as error:
+                if error.code==404:ready=True;break
+            except Exception:pass
+            time.sleep(.25)
+        if not ready:raise ValueError('History route not ready')
+        m.write(template,updated);changed=True
+        if run(['systemctl','restart','x-ui.service']):raise ValueError('Panel restart failed')
+        if run(['systemctl','enable','ghost-gateway.service']):raise ValueError('Data service boot enable failed')
+    except Exception:
+        m.write(template,original)
+        if old:destination.write_bytes(old);os.chmod(destination,0o640)
+        if active:run(['systemctl','restart','ghost-gateway.service'])
+        else:run(['systemctl','stop','ghost-gateway.service'])
+        if changed:run(['systemctl','restart','x-ui.service'])
+        print('Connection failed; template restored. Private backup: '+str(backup));return
+    print('Usage chart attached. Open the ORIGINAL subscription and refresh without cache.')
+    print('At least two successful samples are needed for a measured interval; collector interval is 15 minutes.')
+    print('Only the history matching the subscription token is served; no user list is exposed. Backup: '+str(backup))
 
 def status_setup():
     import getpass
@@ -137,7 +203,8 @@ def gateway_setup():
     original=template.read_text();updated=attach.prepare(original,port)
     authority=url.hostname if original_port==80 else url.hostname+':'+str(original_port)
     origin=urllib.parse.urlunsplit(('http',authority,'','',''))
-    candidate={'listen_port':port,'upstream_port':original_port,'path_prefix':'/sub/','status_only':True,'allowed_origin':origin}
+    candidate={'listen_port':port,'upstream_port':original_port,'path_prefix':'/sub/','status_only':True,'allowed_origin':origin,'history_enabled':bool(existing.get('history_enabled'))}
+    if candidate.get('history_enabled') and key=='1':updated=attach.prepare_usage(updated,port)
     gateway=module(ROOT/'gateway/server.py','gateway')
     active=subprocess.run(['systemctl','is-active','--quiet','ghost-gateway.service'],capture_output=True).returncode==0
     with tempfile.TemporaryDirectory() as d:
@@ -215,18 +282,19 @@ def rollback():
 
 def main():
     while True:
-        print('\nGhost Sub Manager\n1) Install/apply bundled template version\n2) Change brand/logo/default theme (installer)\n3) Configure 3X-UI usage history\n4) Configure server reachability monitor\n5) Read-only installation checks\n6) Restore matching template backup\n7) Attach chart to ORIGINAL subscription (keep URL)\n0) Exit')
+        print('\nGhost Sub Manager\n1) Install/apply bundled template version\n2) Change brand/logo/default theme (installer)\n3) Configure 3X-UI usage history\n4) Configure server reachability monitor\n5) Read-only installation checks\n6) Restore matching template backup\n7) Attach chart to ORIGINAL subscription (keep URL)\n8) Attach 3X-UI usage chart to ORIGINAL subscription\n0) Exit')
         try:
             choice=input('Select: ').strip()
             if choice=='0':return
             if choice=='5':diagnostics();continue
-            if choice not in ('1','2','3','4','6','7'):print('Invalid selection');continue
+            if choice not in ('1','2','3','4','6','7','8'):print('Invalid selection');continue
             if not root_terminal():continue
             if choice in ('1','2'):run(['bash',ROOT/'scripts/install_template.sh'])
             elif choice=='3':history_setup()
             elif choice=='4':status_setup()
             elif choice=='6':rollback()
             elif choice=='7':gateway_setup()
+            elif choice=='8':usage_attach()
         except (EOFError,KeyboardInterrupt):print('\nClosed.');return
         except (OSError,ValueError):print('Operation could not complete; no credentials are printed. Review configuration privately.')
 if __name__=='__main__':main()

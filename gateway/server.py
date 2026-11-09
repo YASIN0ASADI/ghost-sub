@@ -37,8 +37,11 @@ def handler(c):
    if parsed.scheme or parsed.netloc or '..' in path.split('/') or '\\' in path or '//' in path:
     self.reply(404,b'Not found');return
    monitor=path=='/ghost-status.json'
-   if not monitor and (c.get('status_only') or not path.startswith(c['path_prefix'])):self.reply(404,b'Not found');return
-   if monitor:
+   usage=bool(c.get('history_enabled')) and bool(re.fullmatch(r'/ghost-usage/[A-Za-z0-9_-]{8,128}',path)) and not parsed.query
+   if not monitor and not usage and (c.get('status_only') or not path.startswith(c['path_prefix'])):self.reply(404,b'Not found');return
+   if usage:
+    url='http://127.0.0.1:19192/history/'+path.rsplit('/',1)[1];headers={}
+   elif monitor:
     url='http://127.0.0.1:19191/status.json';headers={}
    else:
     authority=self.headers.get('Host','')
@@ -51,9 +54,11 @@ def handler(c):
      body=response.read(LIMIT+1);kind=response.headers.get('Content-Type','application/octet-stream')
      extra=[(key,value) for key,value in response.headers.items() if key.lower() in ('subscription-userinfo','profile-update-interval','profile-title')]
      if len(body)>LIMIT or response.headers.get('Content-Encoding','identity')!='identity':raise ValueError('Unsupported response')
-    if monitor:
+    if monitor or usage:
      data=json.loads(body)
-     if data.get('schema')!=1 or not isinstance(data.get('nodes'),dict):raise ValueError('Invalid monitor feed')
+     if data.get('schema')!=1:raise ValueError('Invalid feed')
+     if monitor and not isinstance(data.get('nodes'),dict):raise ValueError('Invalid monitor feed')
+     if usage and (data.get('source')!='sampled_3xui_counters' or not isinstance(data.get('points'),list)):raise ValueError('Invalid history feed')
      kind='application/json; charset=utf-8'
      extra=[]
      if c.get('allowed_origin') and self.headers.get('Origin')==c['allowed_origin']:
