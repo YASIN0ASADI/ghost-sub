@@ -1202,7 +1202,7 @@ function attachNodeStatus(row,link,name){
 }
 async function refreshGhostStatus(){
  const monitorPort=Number(document.querySelector('meta[name=ghost-status-port]')?.content||0);
- const localMonitor=location.protocol==='http:'&&Number.isInteger(monitorPort)&&monitorPort>=1024&&monitorPort<=65535;
+ const localMonitor=['http:','https:'].includes(location.protocol)&&Number.isInteger(monitorPort)&&monitorPort>=1024&&monitorPort<=65535;
  const autoTarget=localMonitor?new URL('/ghost-status.json',location.href):null;
  if(autoTarget)autoTarget.port=String(monitorPort);
  const url=autoTarget?.href||document.querySelector('meta[name=ghost-status-feed]')?.content;
@@ -1868,7 +1868,7 @@ let _chartPoints = null; // [{t: ms, used: bytes}, ...]
 let ghostUsageCache=null;
 async function loadUsageChart(){
  const dataPort=Number(document.querySelector('meta[name=ghost-usage-port]')?.content||0);
- const autoUsage=location.protocol==='http:'&&Number.isInteger(dataPort)&&dataPort>=1024&&dataPort<=65535;
+ const autoUsage=['http:','https:'].includes(location.protocol)&&Number.isInteger(dataPort)&&dataPort>=1024&&dataPort<=65535;
  const card=document.getElementById('chart-card'),base=autoUsage?'/ghost-usage/':document.querySelector('meta[name=ghost-usage-base]')?.content;
  if(!card||!base){if(card)card.style.display='none';return;}
  card.style.display='';
@@ -1879,7 +1879,7 @@ async function loadUsageChart(){
  try{
   const root=new URL(base,location.href);
   if(autoUsage)root.port=String(dataPort);
-  if(root.origin!==location.origin&&!(autoUsage&&root.protocol==='http:'&&root.hostname===location.hostname&&root.port===String(dataPort)))throw Error('Usage history must stay on the subscription server');
+  if(root.origin!==location.origin&&!(autoUsage&&root.protocol===location.protocol&&root.hostname===location.hostname&&root.port===String(dataPort)))throw Error('Usage history must stay on the subscription server');
   const token=decodeURIComponent(new URL(RAW.subUrl,location.href).pathname.replace(/\/$/,'').split('/').pop());
   if(!/^[A-Za-z0-9_-]{8,128}$/.test(token))throw Error('Unrecognized subscription token');
   let data=ghostUsageCache&&Date.now()-ghostUsageCache.at<60000?ghostUsageCache.data:null;

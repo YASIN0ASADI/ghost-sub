@@ -17,7 +17,14 @@ for path in /opt/ghost-gateway/server.py /etc/ghost-gateway/config.json /etc/sys
 done
 install -d -m 755 /opt/ghost-gateway
 install -d -m 750 -o root -g ghost-gateway /etc/ghost-gateway
-install -m 640 -o root -g ghost-gateway "$1" /etc/ghost-gateway/config.json
+python3 -I - "$1" "$source_dir" <<'PYTLS'
+import json,grp,importlib.util,sys
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('gateway',Path(sys.argv[2])/'server.py')
+m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+c=json.loads(Path(sys.argv[1]).read_text())
+m.install_tls_config(c,'/etc/ghost-gateway',grp.getgrnam('ghost-gateway').gr_gid)
+PYTLS
 install -m 644 "$source_dir/server.py" /opt/ghost-gateway/server.py
 install -m 644 "$source_dir/ghost-gateway.service" /etc/systemd/system/ghost-gateway.service
 systemctl daemon-reload

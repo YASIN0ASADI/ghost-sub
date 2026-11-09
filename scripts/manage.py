@@ -79,7 +79,7 @@ def usage_attach():
     if not candidate:
         source=getpass.getpass('ORIGINAL subscription URL (hidden): ').strip()
         u=module(ROOT/'status-monitor/subscription.py','subscription').validate_url(source)
-        if u.scheme!='http':print('Original HTTPS pages require an HTTPS history route; no settings changed.');return
+        if u.scheme!='http':print('First connect the HTTPS data service through option 7, then retry option 8. No settings changed.');return
         port=int(input('Private-history data port [18090]: ').strip() or '18090')
         public_port=u.port or 80
         if port==public_port:raise ValueError('Choose a separate data port')
@@ -110,10 +110,8 @@ def usage_attach():
         ready=False
         for attempt in range(12):
             try:
-                opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
-                with opener.open('http://127.0.0.1:'+str(port)+'/ghost-usage/aaaaaaaaaaaa',timeout=2):pass
-            except urllib.error.HTTPError as error:
-                if error.code==404:ready=True;break
+                code,_=gateway.local_get(candidate,'/ghost-usage/aaaaaaaaaaaa')
+                if code==404:ready=True;break
             except Exception:pass
             time.sleep(.25)
         if not ready:raise ValueError('History route not ready')
@@ -174,7 +172,7 @@ def status_setup():
                 if os.path.exists(tmp):os.unlink(tmp)
     else:raise ValueError('Invalid mode')
     if candidate is None and run(['bash',ROOT/'status-monitor/install.sh',config]):return
-    print('Monitor targets configured. The chart can be attached to the original HTTP subscription link.')
+    print('Monitor targets configured. The chart can be attached to the original HTTP/HTTPS subscription link.')
     if confirm('Start/restart only ghost-status.service now?'):run(['systemctl','restart','ghost-status.service','ghost-gateway.service'])
     if confirm('Enable ghost-status.service at boot?'):run(['systemctl','enable','ghost-status.service','ghost-gateway.service'])
     if confirm('Connect the chart to the ORIGINAL subscription link now?'):gateway_setup()
@@ -192,20 +190,27 @@ def gateway_setup():
         url=url._replace(netloc=url.hostname+':'+str(existing['upstream_port']))
     if existing.get('status_only') and url.port==existing.get('listen_port') and existing.get('allowed_origin'):
         url=url._replace(netloc=urllib.parse.urlsplit(existing['allowed_origin']).netloc)
-    if url.scheme!='http':
-        print('Same-link port attachment currently supports HTTP subscription pages. HTTPS pages need an HTTPS monitor route; no settings changed.');return
     key,(name,folder)=panel();template=folder/'index.html'
     if template.is_symlink() or not template.is_file():print('Install the current Ghost Sub template for this panel first.');return
     port=int(input('Monitor data port ['+str(existing.get('listen_port',18090))+']: ').strip() or str(existing.get('listen_port',18090)))
-    original_port=url.port or 80
+    original_port=url.port or (443 if url.scheme=='https' else 80)
     if port==original_port:print('Monitor port must differ from the unchanged original subscription port.');return
     attach=module(ROOT/'scripts/status_attach.py','status_attach')
     original=template.read_text();updated=attach.prepare(original,port)
-    authority=url.hostname if original_port==80 else url.hostname+':'+str(original_port)
-    origin=urllib.parse.urlunsplit(('http',authority,'','',''))
+    origin=urllib.parse.urlunsplit((url.scheme,url.netloc,'','',''))
     candidate={'listen_port':port,'upstream_port':original_port,'path_prefix':'/sub/','status_only':True,'allowed_origin':origin,'history_enabled':bool(existing.get('history_enabled'))}
     if candidate.get('history_enabled') and key=='1':updated=attach.prepare_usage(updated,port)
     gateway=module(ROOT/'gateway/server.py','gateway')
+    if url.scheme=='https':
+        print('HTTPS data uses a separate port on the SAME subscription host. The original URL stays unchanged.')
+        print('Provide an existing valid fullchain certificate and matching unencrypted key ON THIS SERVER.')
+        print('Private TLS copies are stored for the data service; after certificate renewal, repeat option 7 with the renewed files.')
+        cert=input('Fullchain PEM path ['+str(existing.get('tls_cert',''))+']: ').strip() or existing.get('tls_cert','')
+        keyfile=input('Private key PEM path ['+str(existing.get('tls_key',''))+']: ').strip() or existing.get('tls_key','')
+        candidate.update(tls_cert=cert,tls_key=keyfile)
+        try:gateway.validate_certificate(candidate)
+        except Exception:
+            print('TLS files unavailable, mismatched, expiring, or not valid for this subscription host. No changes made.');return
     active=subprocess.run(['systemctl','is-active','--quiet','ghost-gateway.service'],capture_output=True).returncode==0
     with tempfile.TemporaryDirectory() as d:
         file=Path(d)/'config.json';file.write_text(json.dumps(candidate));gateway.config(file)
@@ -230,9 +235,9 @@ def gateway_setup():
         ready=False
         for attempt in range(12):
             try:
-                with urllib.request.build_opener(urllib.request.ProxyHandler({})).open('http://127.0.0.1:'+str(port)+'/ghost-status.json',timeout=2) as response:
-                    feed=json.loads(response.read(100001))
-                    ready=feed.get('schema')==1 and isinstance(feed.get('nodes'),dict)
+                code,body=gateway.local_get(candidate,'/ghost-status.json')
+                feed=json.loads(body)
+                ready=code==200 and feed.get('schema')==1 and isinstance(feed.get('nodes'),dict)
                 if ready:break
             except Exception:pass
             time.sleep(.25)

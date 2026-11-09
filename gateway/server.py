@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Fixed loopback subscription gateway + public monitor feed; no arbitrary proxy URL."""
-import argparse,http.server,json,re,threading,urllib.parse,urllib.request,urllib.error
+import argparse,http.server,http.client,json,re,threading,urllib.parse,urllib.request,urllib.error,ssl,socket,subprocess,ipaddress,os,tempfile,shutil
 from pathlib import Path
 LIMIT=4*1024*1024
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -15,7 +15,64 @@ def config(path):
  if not re.fullmatch(r'/[A-Za-z0-9_/-]+/',prefix) or '..' in prefix or '//' in prefix:raise ValueError('Use the subscription path prefix, e.g. /sub/')
  if c.get('status_only'):
   origin=urllib.parse.urlsplit(c.get('allowed_origin',''))
-  if origin.scheme!='http' or not origin.hostname or origin.path or origin.query or origin.fragment or origin.username or origin.password:raise ValueError('Expected exact HTTP subscription origin')
+  if origin.scheme not in ('http','https') or not origin.hostname or origin.path or origin.query or origin.fragment or origin.username or origin.password:raise ValueError('Expected exact HTTP/HTTPS subscription origin')
+  if origin.scheme=='https' and not (c.get('tls_cert') and c.get('tls_key')):raise ValueError('HTTPS origin requires TLS certificate and key')
+  if origin.scheme=='http' and (c.get('tls_cert') or c.get('tls_key')):raise ValueError('HTTP origin must use HTTP data')
+ if c.get('tls_cert') or c.get('tls_key'):
+  if not c.get('status_only'):raise ValueError('TLS is supported for data-only mode')
+  for k in ('tls_cert','tls_key'):
+   if not isinstance(c.get(k),str) or not Path(c[k]).is_absolute():raise ValueError('TLS paths must be absolute')
+  tls_context(c)
+ return c
+
+def tls_context(c):
+ if not c.get('tls_cert'):return None
+ ctx=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);ctx.minimum_version=ssl.TLSVersion.TLSv1_2
+ ctx.load_cert_chain(c['tls_cert'],c['tls_key'],password=lambda:'')
+ return ctx
+
+def validate_certificate(c):
+ # Existing certificate only; never issue or accept an insecure browser exception.
+ host=urllib.parse.urlsplit(c['allowed_origin']).hostname
+ try:ipaddress.ip_address(host);flag='-verify_ip'
+ except ValueError:flag='-verify_hostname'
+ commands=[['openssl','x509','-in',c['tls_cert'],'-noout','-checkend','86400'],
+           ['openssl','verify','-partial_chain','-trusted',c['tls_cert'],'-purpose','sslserver',flag,host,c['tls_cert']]]
+ for command in commands:
+  result=subprocess.run(command,capture_output=True,timeout=10)
+  if result.returncode:raise ValueError('Certificate must match subscription host and remain valid for at least 24 hours')
+ tls_context(c)
+
+def local_get(c,path,context=None):
+ # Connect locally, but use the actual subscription hostname for verified TLS.
+ host=urllib.parse.urlsplit(c.get('allowed_origin','http://localhost')).hostname
+ with socket.create_connection(('127.0.0.1',c['listen_port']),timeout=2) as raw:
+  wire=raw
+  if c.get('tls_cert'):wire=(context or ssl.create_default_context()).wrap_socket(raw,server_hostname=host)
+  try:
+   wire.sendall(('GET '+path+' HTTP/1.1\r\nHost: '+host+'\r\nConnection: close\r\n\r\n').encode('ascii'))
+   response=http.client.HTTPResponse(wire);response.begin();body=response.read(100001)
+   if len(body)>100000:raise ValueError('Oversized local feed')
+   return response.status,body
+  finally:
+   if wire is not raw:wire.close()
+
+def install_tls_config(c,root,gid,uid=0):
+ root=Path(root);c=dict(c)
+ destination=root/'config.json'
+ if destination.is_symlink():raise ValueError('Config symlink refused')
+ if c.get('tls_cert'):
+  folder=Path(tempfile.mkdtemp(prefix='tls-',dir=root))
+  os.chown(folder,uid,gid);os.chmod(folder,0o750)
+  for field,name in [('tls_cert','fullchain.pem'),('tls_key','privkey.pem')]:
+   target=folder/name;shutil.copyfile(c[field],target)
+   os.chown(target,uid,gid);os.chmod(target,0o640);c[field]=str(target)
+ fd,tmp=tempfile.mkstemp(prefix='.config-',dir=root)
+ try:
+  with os.fdopen(fd,'w') as f:json.dump(c,f)
+  os.chown(tmp,uid,gid);os.chmod(tmp,0o640);os.replace(tmp,destination)
+ finally:
+  if os.path.exists(tmp):os.unlink(tmp)
  return c
 
 def patch_html(body):
@@ -75,7 +132,7 @@ def handler(c):
 
 class Server(http.server.ThreadingHTTPServer):
  daemon_threads=True
- def __init__(self,*args,**kwargs):self.slots=threading.BoundedSemaphore(32);super().__init__(*args,**kwargs)
+ def __init__(self,*args,tls=None,**kwargs):self.tls=tls;self.slots=threading.BoundedSemaphore(32);super().__init__(*args,**kwargs)
  def get_request(self):sock,address=super().get_request();sock.settimeout(12);return sock,address
  def process_request(self,request,address):
   if not self.slots.acquire(False):
@@ -85,11 +142,16 @@ class Server(http.server.ThreadingHTTPServer):
   try:super().process_request(request,address)
   except BaseException:self.slots.release();raise
  def process_request_thread(self,request,address):
-  try:super().process_request_thread(request,address)
+  try:
+   if self.tls:
+    request=self.tls.wrap_socket(request,server_side=True,do_handshake_on_connect=False)
+    request.do_handshake()
+   super().process_request_thread(request,address)
+  except Exception:self.shutdown_request(request)
   finally:self.slots.release()
  def handle_error(self,*a):pass
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('--config',default='/etc/ghost-gateway/config.json');a=p.parse_args();c=config(a.config)
- with Server(('0.0.0.0',c['listen_port']),handler(c)) as server:server.serve_forever()
+ with Server(('0.0.0.0',c['listen_port']),handler(c),tls=tls_context(c)) as server:server.serve_forever()
 if __name__=='__main__':main()

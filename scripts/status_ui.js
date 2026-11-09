@@ -145,7 +145,7 @@ function attachNodeStatus(row,link,name){
 }
 async function refreshGhostStatus(){
  const monitorPort=Number(document.querySelector('meta[name=ghost-status-port]')?.content||0);
- const localMonitor=location.protocol==='http:'&&Number.isInteger(monitorPort)&&monitorPort>=1024&&monitorPort<=65535;
+ const localMonitor=['http:','https:'].includes(location.protocol)&&Number.isInteger(monitorPort)&&monitorPort>=1024&&monitorPort<=65535;
  const autoTarget=localMonitor?new URL('/ghost-status.json',location.href):null;
  if(autoTarget)autoTarget.port=String(monitorPort);
  const url=autoTarget?.href||document.querySelector('meta[name=ghost-status-feed]')?.content;

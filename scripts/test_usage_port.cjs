@@ -7,7 +7,7 @@ async function run(scheme,port,base=''){
 }
 (async()=>{
  assert.deepEqual(await run('http:',18090),[['http://144.31.14.215:18090/ghost-usage/abcdefghijklmnop','omit','no-referrer']]);
- assert.deepEqual(await run('https:',18090),[]);
+ assert.deepEqual(await run('https:',18090),[['https://144.31.14.215:18090/ghost-usage/abcdefghijklmnop','omit','no-referrer']]);
  assert.deepEqual(await run('http:',0,'https://other.example/history/'),[]);
  console.log('PASS: usage chart retains original URL, sends only own token to same-host data port, and blocks foreign-origin/insecure HTTPS fallback');
 })().catch(e=>{console.error(e);process.exit(1)});

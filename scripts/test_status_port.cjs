@@ -6,8 +6,9 @@ async function check(scheme,port,feed=''){
 }
 (async()=>{
  assert.deepEqual(await check('http:',18090),[['http://144.31.14.215:18090/ghost-status.json','omit']]);
- assert.deepEqual(await check('https:',18090),[]);
+ assert.deepEqual(await check('https:',18090),[['https://144.31.14.215:18090/ghost-status.json','omit']]);
+ assert.deepEqual(await check('https:',0,'http://144.31.14.215:18090/ghost-status.json'),[]);
  assert.deepEqual(await check('http:',0),[]);
  assert.deepEqual(await check('http:',0,'http://other.example/status'),[]);
- console.log('PASS: original subscription stays unchanged; background feed uses same-host port; HTTPS blocks insecure fallback');
+ console.log('PASS: original subscription stays unchanged; background feed uses same-host port; HTTPS keeps encrypted same-host data');
 })().catch(e=>{console.error(e);process.exit(1)});
