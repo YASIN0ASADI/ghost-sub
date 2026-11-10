@@ -142,7 +142,7 @@ ghost-sub
 
 ### روش اول: مسیر کامل فایل
 
-برای دیدن نام عکس‌های پوشهٔ Telegram Desktop:
+برای دیدن نام عکس‌های پوشهٔ ( مثال: Telegram Desktop ):
 
 ```powershell
 Get-ChildItem "$env:USERPROFILE\Downloads\Telegram Desktop" -File |
