@@ -20,21 +20,20 @@
 
 ## پیش‌نمایش
 
-این تصاویر از قالب جدید گرفته شده‌اند. نام کاربر، لینک‌ها، مصرف و وضعیت سرورها **همگی دادهٔ نمونه** هستند. در نصب واقعی، نام `YOUR BRAND` با انتخاب مدیر جایگزین می‌شود.
-
-### بنفش — تصویر واقعی قالب
-
-شات کامل تم بنفش از مرورگر، با اطلاعات نمونه. برای خوانایی نسخهٔ دسکتاپ، تصویر در عرض کامل نمایش داده می‌شود.
-
-![تم بنفش Ghost Sub؛ تصویر واقعی مرورگر با دادهٔ نمونه](screenshots/preview-purple.png)
-
-### قرمز، سبز و آبی
-
-| قرمز | سبز | آبی |
-|---|---|---|
-| ![قرمز؛ دادهٔ نمونه](screenshots/preview-red.jpg) | ![سبز؛ دادهٔ نمونه](screenshots/preview-green.jpg) | ![آبی؛ دادهٔ نمونه](screenshots/preview-blue.jpg) |
-
-[راهنمای پیش‌نمایش و گرفتن شات](docs/THEME_PREVIEW_FA.md)
+<table>
+  <tr>
+    <th>قرمز</th>
+    <th>سبز</th>
+    <th>آبی</th>
+    <th>بنفش</th>
+  </tr>
+  <tr>
+    <td width="25%" valign="top"><img src="screenshots/preview-red.jpg" alt="تم قرمز" width="220"></td>
+    <td width="25%" valign="top"><img src="screenshots/preview-green.jpg" alt="تم سبز" width="220"></td>
+    <td width="25%" valign="top"><img src="screenshots/preview-blue.jpg" alt="تم آبی" width="220"></td>
+    <td width="25%" valign="top"><img src="screenshots/preview-purple.png" alt="تم بنفش" width="220"></td>
+  </tr>
+</table>
 
 ## راهنمای سریع
 

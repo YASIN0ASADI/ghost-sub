@@ -33,7 +33,6 @@ for panel in ['sub','marzban','pasarguard']:
   source=re.sub(r'\{\{.*?\}\}',value,source,flags=re.S)
   source=source.replace('subUrl: window.location.href.split(\'?\')[0]',"subUrl: 'https://subscription.example.invalid/sub/demo1234567890123'")
   # QA fixture only: never send demonstration links to QR/image/doctor providers.
-  source=source.replace('<body>', '<body><div style="position:fixed;bottom:8px;left:8px;z-index:9999;background:#19191c;color:#ddd;padding:4px 9px;border-radius:8px;font:11px sans-serif;pointer-events:none">DESIGN PREVIEW · SAMPLE DATA</div>',1)
   source=source.replace('let points = null;', 'let points = '+json.dumps(points)+';')
   source=source.replace('let ghostFeed=null;', 'let ghostFeed='+json.dumps(demo_feed)+'; ghostFeed.generated_at=Math.floor(Date.now()/1000); Object.values(ghostFeed.nodes).forEach(n=>n.last_checked=ghostFeed.generated_at-20);')
   if panel=='sub':
