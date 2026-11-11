@@ -14,13 +14,28 @@ class BrandingTests(unittest.TestCase):
   for panel in ['sub','marzban','pasarguard']:
    raw=(ROOT/(panel+'.html')).read_text()
    bindings=re.findall(r'\{\{.*?\}\}|\{%.*?%\}',raw,re.S)
-   for theme in ['red','green','blue']:
+   for theme in ['red','green','blue','purple']:
     for mode in ['ghost','none']:
      out,saved=render(raw,'AFRA',theme,mode)
      self.assertEqual(bindings,re.findall(r'\{\{.*?\}\}|\{%.*?%\}',out,re.S))
      self.assertEqual('id="logo-icon"' in out,mode=='ghost')
      self.assertEqual(saved['theme'],theme)
      self.assertIn("getElementById('logo-icon')?.",out)
+ def test_saved_purple_and_manifest_keep_routes(self):
+  with tempfile.TemporaryDirectory() as d:
+   for panel in ('sub','marzban','pasarguard'):
+    source=(ROOT/(panel+'.html')).read_text()
+    previous=Path(d)/'previous.html'
+    output,state=render(source,'Purple Brand','purple','ghost',status_feed='/ghost-status.json',usage_base='/ghost-usage/')
+    previous.write_text(output)
+    updated,saved=render(source,'','','keep',previous=previous)
+    self.assertEqual(saved,state)
+    self.assertIn('let themeIndex = 3;',updated)
+    self.assertIn('content="/ghost-status.json"',updated)
+    manifest=Path(d)/'manifest.json'
+    subprocess.run(['python3',str(ROOT/'scripts/branding.py'),'--template',str(ROOT/(panel+'.html')),'--previous',str(previous),'--output',str(Path(d)/'new.html'),'--manifest',str(manifest)],check=True,capture_output=True)
+    self.assertEqual(json.loads(manifest.read_text())['theme_color'],'#b78bff')
+    self.assertEqual(json.loads(manifest.read_text())['background_color'],'#0d0914')
  def test_custom_logo_and_update_without_original_file(self):
   with tempfile.TemporaryDirectory() as temp:
    logo=Path(temp)/'my logo.png';logo.write_bytes(png())

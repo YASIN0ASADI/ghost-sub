@@ -14,7 +14,7 @@ for name,code,state in [('Poland','PL','up'),('Germany','DE','unstable'),('Nethe
  good={'up':1190,'unstable':1080,'down':900}[state]
  demo_feed['nodes'][key]={'state':state,'country':code,'last_checked':now//1000-20,'samples':1200,'successful_samples':good,'availability_pct':100*good/1200,'observed_seconds':71400,'tcp_connect_ms':95,'history':[None]*4+({'up':[100,100,100,99,100,100,98,100,100,100,99,100,100,100,100,98,100,100,100,100],'unstable':[100,100,96,100,87,100,90,95,70,92,100,98,85,100,88,90,95,80,100,90],'down':[100,100,100,100,100,100,100,100,100,100,100,100,100,100,90,75,50,30,0,0]}[state])}
 for panel in ['sub','marzban','pasarguard']:
- for theme in ['red','green','blue']:
+ for theme in ['red','green','blue','purple']:
   source,_ = render((ROOT/(panel+'.html')).read_text(),'YOUR BRAND',theme,'ghost')
   source=re.sub(r'\{% for link in .*?%\}.*?\{% endfor %\}',lambda _:links,source,flags=re.S)
   source=re.sub(r'\{\{ range \.links \}\}.*?\{\{ end \}\}',lambda _:links,source,flags=re.S)
@@ -45,4 +45,4 @@ for panel in ['sub','marzban','pasarguard']:
 points=[{'t':now-(60-i)*86400000,'used':int(3.2*1024**3*i/60)} for i in range(61)]
 (out/'usage_demo_user.json').write_text(json.dumps({'username':'demo_user','points':points}))
 (out/'manifest.json').write_text(json.dumps({'name':'Ghost Preview','display':'standalone','start_url':'./'}))
-print('Built 9 illustrative panel/theme fixtures in preview/')
+print('Built 12 illustrative panel/theme fixtures in preview/')

@@ -6,7 +6,7 @@ from pathlib import Path
 LIMIT = 256 * 1024
 MARKER = re.compile(r'<!-- GHOST_SETTINGS:([A-Za-z0-9+/=]+) -->')
 START, END = '<!-- GHOST_LOGO_START -->', '<!-- GHOST_LOGO_END -->'
-THEMES = {'red': 0, 'green': 1, 'blue': 2}
+THEMES = {'red': 0, 'green': 1, 'blue': 2, 'purple': 3}
 
 
 def settings(previous):
@@ -159,7 +159,7 @@ def render(template, brand, theme, mode, logo_source='', previous=None, status_f
     for c in "{}%`$\\":
         safe = safe.replace(c, '&#'+str(ord(c))+';')
     template = template.replace('YOUR BRAND', safe)
-    template, count = re.subn(r'^let themeIndex = [0-2];', 'let themeIndex = '+str(THEMES[theme])+';', template, flags=re.M)
+    template, count = re.subn(r'^let themeIndex = [0-3];', 'let themeIndex = '+str(THEMES[theme])+';', template, flags=re.M)
     if count != 1:
         raise ValueError('Expected one initial theme setting')
     explicit_feed=status_feed is not None
@@ -214,7 +214,7 @@ def main():
     result, state = render(Path(args.template).read_text(), args.brand, args.theme, args.logo_mode, args.logo_source, args.previous, args.status_feed, args.usage_base, args.logo_shape)
     Path(args.output).write_text(result)
     if args.manifest:
-        manifest = {'name':state['brand'], 'short_name':state['brand'][:24], 'start_url':'./', 'display':'standalone', 'background_color':'#09080c', 'theme_color':{'red':'#ff4151','green':'#22d39a','blue':'#55b1ff'}[state['theme']]}
+        manifest = {'name':state['brand'], 'short_name':state['brand'][:24], 'start_url':'./', 'display':'standalone', 'background_color':'#0d0914' if state['theme']=='purple' else '#09080c', 'theme_color':{'red':'#ff4151','green':'#22d39a','blue':'#55b1ff','purple':'#b78bff'}[state['theme']]}
         if state['logo_mode'] == 'custom':
             manifest['icons'] = [{'src':state['logo_data'], 'sizes':'any', 'type':state['logo_data'].split(';')[0][5:]}]
         else:

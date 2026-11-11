@@ -75,3 +75,12 @@ Local candidate from the eight uploaded source files. No GitHub push or server i
 - Added per-subscription-token history forwarding to fixed loopback 19192, enabled only by private admin config. No history list route, query requests and unrelated paths denied, exact-origin CORS, omitted cookies/access logs/referrer and no API credential export.
 - Real loopback test uses actual history DB/ingestion/read logic with two tokens: each gets only its own measured delta; unknown/list/query/disabled requests fail. Browser-function Node tests verify only own token to configured same-host port and refusal of foreign-origin/insecure HTTPS fallback. Branding updates retain both attachments.
 - User reported successful live collector v3 sampling for one subscription; new chart attachment not yet validated on that live host. No claim of universal panel compatibility or retrospective history.
+
+## Purple theme candidate — 2026-11-11
+
+- Added fourth theme to all three templates, installer, retained settings and PWA manifest. Existing default selections remain unchanged until explicitly selected.
+- Python scripts suite: 22 tests, 20 passed and 2 bootstrap tests skipped in this environment. All 17 branding tests passed, including all panel/theme/logo combinations, saved purple selection and private-route preservation.
+- Theme JS test: all four initial themes, two complete cycles from each starting theme in all three panels; no previous purple class remains after switching; gradient/logo/browser meta colors match. Syntax checked across all 12 generated fixtures.
+- Existing status-port, usage-port and status UI Node tests passed. Appearance installer shell syntax and capture helper Python syntax passed.
+- Purple browser screenshot/mobile visual QA could not run in this environment: local Chromium failed its Unix socket startup, and the cloud browser blocked file-URL navigation. The README clearly labels the included purple SVG as a palette illustration, not a screenshot. The optional capture helper is supplied for operator execution and has NOT been browser-validated here.
+- No GitHub push or live panel/server changes performed. Current public README edits were retained as the base.

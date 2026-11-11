@@ -62,6 +62,17 @@
 .theme-blue::before { background:radial-gradient(circle,rgba(56,189,248,0.06) 0%,transparent 65%); }
 .theme-blue .modal-box { border-color: rgba(56,189,248,0.15); }
 .theme-blue .user-badge { background:rgba(56,189,248,0.06); border-color:rgba(56,189,248,0.2); box-shadow:0 0 20px rgba(56,189,248,0.08); }
+.theme-purple {
+  --bg:#0d0914; --bg2:#140e20;
+  --glass:rgba(183,139,255,.025); --glass-b:rgba(183,139,255,.1); --glass-h:rgba(183,139,255,.07);
+  --red:#b78bff; --red2:#ddc7ff;
+  --grad:linear-gradient(135deg,#713ac2,#b78bff);
+  --grad-neon:linear-gradient(120deg,#e1caff,#b78bff);
+}
+.theme-purple::before { background:radial-gradient(circle,rgba(183,139,255,.07) 0%,transparent 65%); }
+.theme-purple .modal-box { border-color:rgba(183,139,255,.18); }
+.theme-purple .user-badge { background:rgba(183,139,255,.07); border-color:rgba(183,139,255,.24); box-shadow:0 0 20px rgba(183,139,255,.09); }
+
 
 *{margin:0;padding:0;box-sizing:border-box}
 
@@ -684,7 +695,8 @@ html[dir="ltr"] body{font-family:'Inter','Vazirmatn',sans-serif;letter-spacing:0
 body.theme-green{--accent-rgb:34,211,154;--red:#22d39a;--red2:#7aebc8;--text2:#adbfb9;--text3:#83998f;--bg:#070c0b;--grad:linear-gradient(135deg,#087557,#14b889);--grad-neon:linear-gradient(120deg,#94f5d6,#22d39a)}
 body.theme-blue{--accent-rgb:85,177,255;--red:#55b1ff;--red2:#a4d4ff;--text2:#adb7ca;--text3:#8190aa;--bg:#080b12;--grad:linear-gradient(135deg,#285faf,#5689f7);--grad-neon:linear-gradient(120deg,#bddcff,#55b1ff)}
 body{background:var(--bg);font-size:14px;line-height:1.6}
-body::before,body.theme-green::before,body.theme-blue::before{animation:none;top:0;left:0;width:100%;height:650px;background:radial-gradient(ellipse at 50% 5%,rgba(var(--accent-rgb),.13),transparent 67%)}
+body.theme-purple{--accent-rgb:183,139,255;--red:#b78bff;--red2:#ddc7ff;--text2:#bdb0cf;--text3:#9785ad;--bg:#0d0914;--grad:linear-gradient(135deg,#713ac2,#b78bff);--grad-neon:linear-gradient(120deg,#e1caff,#b78bff)}
+body::before,body.theme-green::before,body.theme-blue::before,body.theme-purple::before{animation:none;top:0;left:0;width:100%;height:650px;background:radial-gradient(ellipse at 50% 5%,rgba(var(--accent-rgb),.13),transparent 67%)}
 .container{max-width:680px;padding:18px 20px 38px}
 .top-bar{padding:0 0 15px;border-bottom:1px solid rgba(var(--accent-rgb),.18);margin-bottom:20px;gap:10px}
 .brand-small{display:flex;align-items:center;gap:8px;font-size:16px;letter-spacing:.14em;text-shadow:none;min-width:0;overflow-wrap:anywhere}
@@ -1543,28 +1555,31 @@ function toggleFaq(btn) {
 }
 
 let themeIndex = 0;
-const themes = ['red','green','blue'];
+const themes = ['red','green','blue','purple'];
 const themeIcons = {
   red:   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
   green: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M9 12l2 2 4-4"/></svg>',
-  blue:  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+  blue:  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  purple: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6Z"/></svg>'
 };
 const themeColors = {
   red:   { s1:'#ff2a2a', s2:'#ff7a00', logo:'#ff4444' },
   green: { s1:'#10b981', s2:'#6ee7b7', logo:'#10b981' },
-  blue:  { s1:'#38bdf8', s2:'#a78bfa', logo:'#38bdf8' }
+  blue:  { s1:'#38bdf8', s2:'#a78bfa', logo:'#38bdf8' },
+  purple: { s1:'#b78bff', s2:'#e1caff', logo:'#b78bff' }
 };
 
 function cycleTheme() {
   playClickSound();
   themeIndex = (themeIndex + 1) % themes.length;
   const t = themes[themeIndex];
-  document.body.classList.remove('theme-red','theme-green','theme-blue');
+  document.body.classList.remove('theme-red','theme-green','theme-blue','theme-purple');
   if(t !== 'red') document.body.classList.add('theme-' + t);
   const c = themeColors[t];
   document.getElementById('g-stop1').setAttribute('stop-color', c.s1);
   document.getElementById('g-stop2').setAttribute('stop-color', c.s2);
   document.getElementById('logo-icon')?.setAttribute('stroke', c.logo);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', c.logo);
   document.getElementById('theme-cycle-btn').innerHTML = themeIcons[themes[(themeIndex+1)%themes.length]];
 }
 
@@ -2332,6 +2347,7 @@ function initParticles() {
   function getColor() {
     if (document.body.classList.contains('theme-green')) return '16,185,129';
     if (document.body.classList.contains('theme-blue')) return '56,189,248';
+    if (document.body.classList.contains('theme-purple')) return '183,139,255';
     return '224,30,30';
   }
 
@@ -2373,15 +2389,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   const _sBtn = document.getElementById('sound-toggle-btn');
   if(_sBtn){ _sBtn.textContent = soundEnabled ? '🔊' : '🔇'; _sBtn.classList.toggle('muted', !soundEnabled); }
 
-  // Apply blue theme on load
+  // Apply the installed default theme on load
   try {
-    const _t = themes[themeIndex]; // 'blue'
-    document.body.classList.remove('theme-red','theme-green','theme-blue');
+    const _t = themes[themeIndex];
+    document.body.classList.remove('theme-red','theme-green','theme-blue','theme-purple');
     if(_t !== 'red') document.body.classList.add('theme-' + _t);
     const _c = themeColors[_t];
     document.getElementById('g-stop1').setAttribute('stop-color', _c.s1);
     document.getElementById('g-stop2').setAttribute('stop-color', _c.s2);
     document.getElementById('logo-icon')?.setAttribute('stroke', _c.logo);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', _c.logo);
     const _tb = document.getElementById('theme-cycle-btn');
     if(_tb) _tb.innerHTML = themeIcons[themes[(themeIndex+1)%themes.length]];
   } catch(e) {}

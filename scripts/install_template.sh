@@ -20,9 +20,9 @@ OUTPUT_FILE="$INSTALL_DIR/index.html"
 echo 'Existing refresh-version branding can be kept by pressing Enter.'
 echo 'For an older installation, enter its brand again on the first update.'
 read -rp 'Brand name (Enter: keep saved): ' BRAND_NAME
-read -rp 'Default theme [1 red / 2 green / 3 blue; Enter: keep saved or red]: ' THEME_CHOICE
+read -rp 'Default theme [1 red / 2 green / 3 blue / 4 purple; Enter: keep saved or red]: ' THEME_CHOICE
 case "$THEME_CHOICE" in
-  '') THEME_NAME='';; 1) THEME_NAME='red';; 2) THEME_NAME='green';; 3) THEME_NAME='blue';;
+  '') THEME_NAME='';; 1) THEME_NAME='red';; 2) THEME_NAME='green';; 3) THEME_NAME='blue';; 4) THEME_NAME='purple';;
   *) echo 'Invalid theme; nothing changed'; exit 1;;
 esac
 echo 'Profile image: paste a PNG/JPG/WebP path ON THIS SERVER or an HTTPS image URL.'
