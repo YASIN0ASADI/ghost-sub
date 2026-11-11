@@ -40,7 +40,7 @@ def main():
     if errors:
         raise RuntimeError('Preview JavaScript errors: ' + '\n'.join(errors))
     readme = ROOT / 'README.md'
-    text = readme.read_text(encoding='utf-8').replace('screenshots/preview-purple.svg', 'screenshots/preview-purple.jpg')
+    text = readme.read_text(encoding='utf-8').replace('screenshots/preview-purple.svg', 'screenshots/preview-purple.jpg').replace('screenshots/preview-purple.png', 'screenshots/preview-purple.jpg')
     text = text.replace('تصویر بنفش، پیش‌نمایش SVG پالت جدید با دادهٔ نمونه است؛ اسکرین‌شات مرورگر نیست.', 'تصویر بنفش از قالب اجراشده در مرورگر و با دادهٔ نمونه ثبت شده است.')
     readme.write_text(text, encoding='utf-8')
     print('README now points to the captured mobile screenshot. Review both images before committing.')
