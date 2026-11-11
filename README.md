@@ -31,7 +31,7 @@
     <td width="25%" valign="top"><img src="screenshots/preview-red.jpg" alt="تم قرمز" width="220"></td>
     <td width="25%" valign="top"><img src="screenshots/preview-green.jpg" alt="تم سبز" width="220"></td>
     <td width="25%" valign="top"><img src="screenshots/preview-blue.jpg" alt="تم آبی" width="220"></td>
-    <td width="25%" valign="top"><img src="screenshots/preview-purple.png" alt="تم بنفش" width="220"></td>
+    <td width="25%" valign="top"><img src="screenshots/preview-purple.jpg" alt="تم بنفش" width="220"></td>
   </tr>
 </table>
 
