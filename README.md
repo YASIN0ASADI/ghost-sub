@@ -22,10 +22,10 @@
 
 <table>
   <tr>
-    <th>قرمز</th>
-    <th>سبز</th>
-    <th>آبی</th>
-    <th>بنفش</th>
+    <th>قرمز · ۱ روز</th>
+    <th>سبز · ۱ هفته</th>
+    <th>آبی · ۳ هفته</th>
+    <th>بنفش · ۱ ماه</th>
   </tr>
   <tr>
     <td width="25%" valign="top"><img src="screenshots/preview-red.jpg" alt="تم قرمز" width="220"></td>
